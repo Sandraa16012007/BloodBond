@@ -20,12 +20,12 @@
         </div>
         <div class="nav-right">
             <ul class="nav-links">
-                <li><a href="#home">Home</a></li>
-                <li><a href="#about">About</a></li>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="about.html">About</a></li>
             </ul>
             <div class="nav-buttons">
-                <button class="btn btn-login">Login</button>
-                <button class="btn btn-signup">Sign Up</button>
+                <a href="login.html" class="btn btn-login">Login</a>
+                <a href="signup.html" class="btn btn-signup">Sign Up</a>
             </div>
         </div>
     </nav>
@@ -40,13 +40,13 @@
                     <h1>Welcome Back</h1>
                     <p>Login to your BloodBond account</p>
                 </div>
-    
+
                 <form class="login-form" id="loginForm">
                     <div class="form-group">
                         <label for="email">Email</label>
                         <input type="email" id="email" class="form-input" placeholder="john@example.com" required>
                     </div>
-    
+
                     <div class="form-group">
                         <div class="password-header">
                             <label for="password">Password</label>
@@ -59,13 +59,13 @@
                             </button>
                         </div>
                     </div>
-    
+
                     <button type="submit" class="login-button" id="loginButton">
                         Login
                     </button>
-    
+
                     <div class="signup-text">
-                        Don't have an account? <a href="#">Sign up</a>
+                        Don't have an account? <a href="signup.html">Sign up</a>
                     </div>
                 </form>
             </div>
@@ -115,10 +115,10 @@
                 loginButton.textContent = '✓ Success!';
                 loginButton.style.background = '#4CAF50';
 
+                // Redirect to dashboard after user sees the success
                 setTimeout(() => {
-                    loginButton.textContent = 'Login';
-                    loginButton.style.background = '';
-                }, 2000);
+                    window.location.href = 'dashboard.html';
+                }, 1000);
             }, 2000);
         });
 
@@ -134,11 +134,11 @@
         });
 
         // Smooth scroll for back button
-        document.querySelector('.back-button').addEventListener('click', function (e) {
+        /* document.querySelector('.back-button').addEventListener('click', function (e) {
             e.preventDefault();
             // In real app, this would navigate to home
             alert('Navigate to home page');
-        });
+        }); */
 
         // Add ripple effect to login button
         loginButton.addEventListener('click', function (e) {
