@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles/login-styles.css">
+    <link rel="stylesheet" href="styles/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&display=swap" rel="stylesheet">
+    <title>Login - BloodBond</title>
+</head>
+
+<body>
+
+    <nav>
+        <div class="logo">
+            <span>BloodBond</span>
+        </div>
+        <div class="nav-right">
+            <ul class="nav-links">
+                <li><a href="#home">Home</a></li>
+                <li><a href="#about">About</a></li>
+            </ul>
+            <div class="nav-buttons">
+                <button class="btn btn-login">Login</button>
+                <button class="btn btn-signup">Sign Up</button>
+            </div>
+        </div>
+    </nav>
+
+
+    <main class="login-main">
+        <div class="login-wrapper">
+            <a href="index.html" class="back-button">Back to Home</a>
+            <div class="login-container">
+                <div class="login-header">
+                    <div class="blood-icon">🩸</div>
+                    <h1>Welcome Back</h1>
+                    <p>Login to your BloodBond account</p>
+                </div>
+    
+                <form class="login-form" id="loginForm">
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" class="form-input" placeholder="john@example.com" required>
+                    </div>
+    
+                    <div class="form-group">
+                        <div class="password-header">
+                            <label for="password">Password</label>
+                            <a href="#" class="forgot-password">Forgot password?</a>
+                        </div>
+                        <div class="password-wrapper">
+                            <input type="password" id="password" class="form-input" placeholder="••••••••" required>
+                            <button type="button" class="toggle-password" id="togglePassword">
+                                👁️
+                            </button>
+                        </div>
+                    </div>
+    
+                    <button type="submit" class="login-button" id="loginButton">
+                        Login
+                    </button>
+    
+                    <div class="signup-text">
+                        Don't have an account? <a href="#">Sign up</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Toggle password visibility
+        const togglePassword = document.getElementById('togglePassword');
+        const passwordInput = document.getElementById('password');
+
+        togglePassword.addEventListener('click', function () {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            this.textContent = type === 'password' ? '👁️' : '🙈';
+        });
+
+        // Add focus animation to form groups
+        const formInputs = document.querySelectorAll('.form-input');
+        formInputs.forEach(input => {
+            input.addEventListener('focus', function () {
+                this.parentElement.parentElement.classList.add('focused');
+            });
+
+            input.addEventListener('blur', function () {
+                this.parentElement.parentElement.classList.remove('focused');
+            });
+        });
+
+        // Form submission with animation
+        const loginForm = document.getElementById('loginForm');
+        const loginButton = document.getElementById('loginButton');
+
+        loginForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            // Add loading state
+            loginButton.classList.add('loading');
+            loginButton.textContent = '';
+
+            // Simulate API call
+            setTimeout(() => {
+                loginButton.classList.remove('loading');
+                loginButton.textContent = 'Login';
+
+                // Show success (in real app, would redirect)
+                loginButton.textContent = '✓ Success!';
+                loginButton.style.background = '#4CAF50';
+
+                setTimeout(() => {
+                    loginButton.textContent = 'Login';
+                    loginButton.style.background = '';
+                }, 2000);
+            }, 2000);
+        });
+
+        // Input validation animation
+        formInputs.forEach(input => {
+            input.addEventListener('invalid', function (e) {
+                e.preventDefault();
+                this.classList.add('error');
+                setTimeout(() => {
+                    this.classList.remove('error');
+                }, 500);
+            });
+        });
+
+        // Smooth scroll for back button
+        document.querySelector('.back-button').addEventListener('click', function (e) {
+            e.preventDefault();
+            // In real app, this would navigate to home
+            alert('Navigate to home page');
+        });
+
+        // Add ripple effect to login button
+        loginButton.addEventListener('click', function (e) {
+            const rect = this.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            const ripple = document.createElement('span');
+            ripple.style.position = 'absolute';
+            ripple.style.left = x + 'px';
+            ripple.style.top = y + 'px';
+            ripple.style.width = '0';
+            ripple.style.height = '0';
+            ripple.style.borderRadius = '50%';
+            ripple.style.background = 'rgba(255, 255, 255, 0.5)';
+            ripple.style.transform = 'translate(-50%, -50%)';
+            ripple.style.animation = 'ripple 0.6s ease-out';
+
+            this.appendChild(ripple);
+
+            setTimeout(() => ripple.remove(), 600);
+        });
+
+        // Add CSS for ripple animation dynamically
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes ripple {
+                to {
+                    width: 200px;
+                    height: 200px;
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+
+</html>
