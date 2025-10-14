@@ -39,13 +39,21 @@ nav {
 .logo {
     display: flex;
     align-items: center;
-    gap: 10px;
     font-family: "Do Hyeon", sans-serif;
     font-weight: 500;
     letter-spacing: 1px;
     font-style: normal;
     font-size: 1.75rem;
     color: #cc2d3a;
+}
+
+.logo-icon img {
+    width: 40px;
+    height: 40px;
+    padding-top:2px;
+    object-fit: cover;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
 }
 
 @keyframes pulse {

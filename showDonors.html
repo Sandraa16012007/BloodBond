@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Available Donors - BloodBond</title>
+    <link rel="stylesheet" href="styles/dashboard-styles.css">
+    <link rel="stylesheet" href="styles/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&display=swap" rel="stylesheet">
+
+    <style>
+        @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css');
+
+        body {
+            background-color: #f7f7f7;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .donor-card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            width: 800px;
+            padding: 20px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-bottom: 25px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .icon {
+            background: #fdeaea;
+            color: #e63946;
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+        }
+
+        .info h3 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .available {
+            background: #4CAF50;
+            color: #fff;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+        }
+
+        .details {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            font-size: 16px;
+        }
+
+        .detail-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #444;
+        }
+
+        .detail-item i {
+            color: #e63946;
+        }
+
+        .note {
+            background: #f8f8f8;
+            padding: 12px 14px;
+            margin-top: 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .card-footer {
+            display: flex;
+            gap: 10px;
+        }
+
+        .card-footer .btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        .contact {
+            background: #e63946;
+            color: white;
+            border: none;
+        }
+
+        .contact:hover {
+            background: #c72f3a;
+        }
+
+        .message {
+            background: #fff;
+            border: 1px solid rgba(0, 0, 0, 0.4);
+            color: #333;
+        }
+
+        .message:hover {
+            background: #f3f3f3;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="logo">
+            <div class="logo-icon"><img src="assets/logo.png" alt="Logo"></div>
+            <span>BloodBond</span>
+        </div>
+        <div class="nav-right">
+            <ul class="nav-links">
+                <li><a href="#home">Home</a></li>
+                <li><a href="#donors">Donors</a></li>
+                <li><a href="#requests">Requests</a></li>
+            </ul>
+            <div class="nav-buttons">
+                <button class="btn btn-logout">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="container">
+        <div class="requests-section" id="donorsSection">
+            <h2>Available Donors Nearby</h2>
+
+            <!-- Donor Card 1 -->
+            <div class="donor-card">
+                <div class="card-header">
+                    <div class="profile">
+                        <div class="icon"><i class="fas fa-user"></i></div>
+                        <div class="info">
+                            <h3>Alex Carter</h3>
+                            <span class="available">Available</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    <div class="details">
+                        <div class="detail-item">
+                            <i class="fas fa-tint"></i>
+                            <span>Blood Group: <strong>A+</strong></span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>Location: <strong>2 km away</strong><br>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-phone"></i>
+                            <span>Contact: <strong>+1 234 567 8901</strong></span>
+                        </div>
+                    </div>
+
+                    <div class="note">
+                        Regular donor. Donated last month and available again for emergency needs.
+                    </div>
+                </div>
+
+                <div class="card-footer">
+                    <button class="btn contact">Contact Donor</button>
+                    <button class="btn message">Message</button>
+                </div>
+            </div>
+
+            <!-- Donor Card 2 -->
+            <div class="donor-card">
+                <div class="card-header">
+                    <div class="profile">
+                        <div class="icon"><i class="fas fa-user"></i></div>
+                        <div class="info">
+                            <h3>Priya Sharma</h3>
+                            <span class="available">Available</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    <div class="details">
+                        <div class="detail-item">
+                            <i class="fas fa-tint"></i>
+                            <span>Blood Group: <strong>O+</strong></span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>Location: <strong>1.8 km away</strong><br>
+                                <small>East City Zone</small></span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-phone"></i>
+                            <span>Contact: <strong>+1 987 654 3210</strong></span>
+                        </div>
+                    </div>
+
+                    <div class="note">
+                        Certified donor. Participates in regular health checkups and community blood drives.
+                    </div>
+                </div>
+
+                <div class="card-footer">
+                    <button class="btn contact">Contact Donor</button>
+                    <button class="btn message">Message</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div>
+                <div class="footer-logo">
+                    <span>BloodBond</span>
+                </div>
+                <p class="footer-desc">Connecting blood donors with those in need. Every drop counts.</p>
+            </div>
+            <div class="footer-section">
+                <h4>Quick Links</h4>
+                <ul class="footer-links">
+                    <li><a href="#home">Home</a></li>
+                    <li><a href="#donors">Find Donors</a></li>
+                    <li><a href="#requests">Blood Requests</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Contact</h4>
+                <ul class="footer-links">
+                    <li><a href="#contact">Help Center</a></li>
+                    <li><a href="#faq">FAQs</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 BloodBond. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+
+</html>

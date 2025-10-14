@@ -16,6 +16,7 @@
     <!-- Navigation -->
     <nav>
         <div class="logo">
+            <div class="logo-icon"><img src="assets/logo.png" alt="Logo"></div>
             <span>BloodBond</span>
         </div>
         <div class="nav-right">
@@ -81,12 +82,17 @@
                     <h2 id="activeCardTitle">You're Currently Active</h2>
                     <p id="activeCardText">Thank you for being available to donate! You'll receive notifications when someone nearby needs
                         O+.</p>
-                    <a href="#requests" class="btn-view">View Blood Requests</a>
+                </div>
+
+                <!-- Inactive Status Card -->
+                <div class="inactive-card" id="inactiveCard" style="display: none;">
+                    <h2>You're Currently Inactive</h2>
+                    <p>You will not receive donation requests. Toggle your status back to "Active" when you're available to help.</p>
                 </div>
 
                 <!-- Nearby Requests -->
-                <div id="requests" class="requests-section">
-                    <h2>Nearby Requests</h2>
+                <div class="requests-section" id="requestsSection">
+                    <h2>Blood Requests</h2>
 
                     <div class="request-card">
                         <div class="request-header">
@@ -225,25 +231,24 @@
         const statusToggle = document.getElementById('statusToggle');
         const statusBadge = document.getElementById('statusBadge');
         const activeCard = document.getElementById('activeCard');
-        const activeCardTitle = document.getElementById('activeCardTitle');
-        const activeCardText = document.getElementById('activeCardText');
+        const inactiveCard = document.getElementById('inactiveCard');
+        const requestsSection = document.getElementById('requestsSection');
 
         statusToggle.addEventListener('change', function() {
             if (this.checked) {
                 // Set to Active
                 statusBadge.textContent = 'Active';
                 statusBadge.classList.remove('inactive');
-                activeCard.style.display = 'block';
-                activeCardTitle.textContent = "You're Currently Active";
-                activeCardText.textContent = "Thank you for being available to donate! You'll receive notifications when someone nearby needs O+.";
+                activeCard.style.display = 'block'; // Or 'flex' if it's a flex container
+                inactiveCard.style.display = 'none';
+                requestsSection.style.display = 'block';
             } else {
                 // Set to Inactive
                 statusBadge.textContent = 'Inactive';
                 statusBadge.classList.add('inactive');
                 activeCard.style.display = 'none';
-                // Or, to show a different message instead of hiding:
-                // activeCardTitle.textContent = "You're Currently Inactive";
-                // activeCardText.textContent = "You will not receive donation requests. Toggle back on when you're available.";
+                inactiveCard.style.display = 'block'; // Or 'flex'
+                requestsSection.style.display = 'none';
             }
         });
 
