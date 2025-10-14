@@ -84,6 +84,12 @@
                     <button class="btn-view">View Blood Requests</button>
                 </div>
 
+                <!-- Inactive Status Card -->
+                <div class="inactive-card" id="inactiveCard" style="display: none;">
+                    <h2>You're Currently Inactive</h2>
+                    <p>You will not receive donation requests. Toggle your status back to "Active" when you're available to help.</p>
+                </div>
+
                 <!-- Nearby Requests -->
                 <div class="requests-section">
                     <h2>Nearby Requests</h2>
@@ -225,8 +231,7 @@
         const statusToggle = document.getElementById('statusToggle');
         const statusBadge = document.getElementById('statusBadge');
         const activeCard = document.getElementById('activeCard');
-        const activeCardTitle = document.getElementById('activeCardTitle');
-        const activeCardText = document.getElementById('activeCardText');
+        const inactiveCard = document.getElementById('inactiveCard');
 
         statusToggle.addEventListener('change', function() {
             if (this.checked) {
@@ -234,16 +239,13 @@
                 statusBadge.textContent = 'Active';
                 statusBadge.classList.remove('inactive');
                 activeCard.style.display = 'block';
-                activeCardTitle.textContent = "You're Currently Active";
-                activeCardText.textContent = "Thank you for being available to donate! You'll receive notifications when someone nearby needs O+.";
+                inactiveCard.style.display = 'none';
             } else {
                 // Set to Inactive
                 statusBadge.textContent = 'Inactive';
                 statusBadge.classList.add('inactive');
                 activeCard.style.display = 'none';
-                // Or, to show a different message instead of hiding:
-                // activeCardTitle.textContent = "You're Currently Inactive";
-                // activeCardText.textContent = "You will not receive donation requests. Toggle back on when you're available.";
+                inactiveCard.style.display = 'block';
             }
         });
 

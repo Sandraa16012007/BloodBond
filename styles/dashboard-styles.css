@@ -160,6 +160,33 @@ body {
     animation: fadeInUp 0.8s ease 0.5s both;
 }
 
+.inactive-card {
+    background: #e9ecef;
+    padding: 35px;
+    border-radius: 15px;
+    margin-bottom: 30px;
+    border: 2px dashed #ced4da;
+    animation: fadeInUp 0.8s ease 0.5s both;
+}
+
+.inactive-card h2 {
+    font-size: 1.5rem;
+    color: #495057;
+    margin-bottom: 15px;
+}
+
+.inactive-card p {
+    color: #6c757d;
+    margin-bottom: 25px;
+    max-width: 600px;
+}
+
+.btn-view-inactive {
+    background: #adb5bd;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
 .active-card h2 {
     font-size: 1.5rem;
     color: #333;
@@ -466,7 +493,7 @@ body {
 }
 
 .action-btn.request{
-    border-color: #e63946;
+    background: linear-gradient(135deg, #ffdde1 0%, #ee9ca7 100%);
 }
 
 .action-btn:hover {
