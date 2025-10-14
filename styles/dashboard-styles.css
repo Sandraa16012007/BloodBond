@@ -356,6 +356,12 @@ body {
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s;
+    text-decoration: none;
+    text-align: center;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
 }
 
 .btn-accept:hover {
