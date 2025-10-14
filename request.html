@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Request Blood - BloodBond</title>
+    <link rel="stylesheet" href="styles/request-styles.css">
+    <link rel="stylesheet" href="styles/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="logo">
+            <span>BloodBond</span>
+        </div>
+        <div class="nav-right">
+            <ul class="nav-links">
+                <li><a href="#home">Home</a></li>
+                <li><a href="#about">About</a></li>
+            </ul>
+            <div class="nav-buttons">
+                <button class="btn btn-logout">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="container">
+        <a href="#" class="back-button">Back to Dashboard</a>
+
+        <div class="form-card">
+            <div class="form-header">
+                <div class="header-icon">❤️</div>
+                <div class="header-text">
+                    <h1>Request Blood</h1>
+                    <p>Fill in the details to find donors</p>
+                </div>
+            </div>
+
+            <form class="form-content" id="requestForm">
+                <div class="form-group">
+                    <label for="bloodGroup">Blood Group Needed <span class="required">*</span></label>
+                    <select id="bloodGroup" class="form-select" required>
+                        <option value="">Select blood group</option>
+                        <option value="A+">A+</option>
+                        <option value="A-">A-</option>
+                        <option value="B+">B+</option>
+                        <option value="B-">B-</option>
+                        <option value="AB+">AB+</option>
+                        <option value="AB-">AB-</option>
+                        <option value="O+">O+</option>
+                        <option value="O-">O-</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="urgency">Urgency Level <span class="required">*</span></label>
+                    <select id="urgency" class="form-select" required>
+                        <option value="">Select urgency level</option>
+                        <option value="critical">Critical (Immediate)</option>
+                        <option value="high">High (Within 24 hours)</option>
+                        <option value="medium">Medium (Within 3 days)</option>
+                        <option value="low">Low (Within a week)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="hospital">Hospital / Medical Center <span class="required">*</span></label>
+                    <input 
+                        type="text" 
+                        id="hospital" 
+                        class="form-input" 
+                        placeholder="Enter hospital name"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="location">Location <span class="required">*</span></label>
+                    <input 
+                        type="text" 
+                        id="location" 
+                        class="form-input" 
+                        placeholder="City, State"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="additional">Additional Information</label>
+                    <textarea 
+                        id="additional" 
+                        class="form-textarea" 
+                        placeholder="Any additional details that might help donors..."
+                    ></textarea>
+                </div>
+
+                <div class="alert-box">
+                    <strong>Note:</strong>
+                    <p>Your request will be shared with nearby donors matching your requirements. Please ensure all information is accurate.</p>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-submit" id="submitBtn">Submit Request</button>
+                    <button type="button" class="btn-cancel" id="cancelBtn">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer id="about">
+        <div class="footer-content">
+            <div>
+                <div class="footer-logo">
+                    <span>BloodBond</span>
+                </div>
+                <p class="footer-desc">Connecting blood donors with those in need. Every donation saves lives.</p>
+            </div>
+            <div class="footer-section">
+                <h4>Quick Links</h4>
+                <ul class="footer-links">
+                    <li><a href="#home">Home</a></li>
+                    <li><a href="#about">About Us</a></li>
+                    <li><a href="#register">Register</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Legal</h4>
+                <ul class="footer-links">
+                    <li><a href="#privacy">Privacy Policy</a></li>
+                    <li><a href="#terms">Terms of Service</a></li>
+                    <li><a href="#contact">Contact Us</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 BloodBond. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Add focus animation to form groups
+        const formInputs = document.querySelectorAll('.form-input, .form-select, .form-textarea');
+        formInputs.forEach(input => {
+            input.addEventListener('focus', function() {
+                this.closest('.form-group').classList.add('focused');
+            });
+            
+            input.addEventListener('blur', function() {
+                this.closest('.form-group').classList.remove('focused');
+            });
+        });
+
+        // Form submission
+        const form = document.getElementById('requestForm');
+        const submitBtn = document.getElementById('submitBtn');
+        
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Validate all required fields
+            let isValid = true;
+            const requiredFields = form.querySelectorAll('[required]');
+            
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    field.classList.add('error');
+                    isValid = false;
+                    setTimeout(() => field.classList.remove('error'), 500);
+                } else {
+                    field.classList.remove('error');
+                }
+            });
+
+            if (!isValid) return;
+
+            // Add loading state
+            submitBtn.classList.add('loading');
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = '';
+            
+            // Simulate API call
+            setTimeout(() => {
+                submitBtn.classList.remove('loading');
+                submitBtn.classList.add('success');
+                submitBtn.textContent = '✓ Request Submitted!';
+                
+                // Reset form after delay
+                setTimeout(() => {
+                    form.reset();
+                    submitBtn.classList.remove('success');
+                    submitBtn.textContent = originalText;
+                }, 2000);
+            }, 2000);
+        });
+
+        // Cancel button
+        document.getElementById('cancelBtn').addEventListener('click', function() {
+            if (confirm('Are you sure you want to cancel? All entered data will be lost.')) {
+                form.reset();
+            }
+        });
+
+        // Smooth scroll for back button
+        document.querySelector('.back-button').addEventListener('click', function(e) {
+            e.preventDefault();
+            alert('Navigate back to dashboard');
+        });
+
+        // Add ripple effect to submit button
+        submitBtn.addEventListener('click', function(e) {
+            const rect = this.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            const ripple = document.createElement('span');
+            ripple.style.position = 'absolute';
+            ripple.style.left = x + 'px';
+            ripple.style.top = y + 'px';
+            ripple.style.width = '0';
+            ripple.style.height = '0';
+            ripple.style.borderRadius = '50%';
+            ripple.style.background = 'rgba(255, 255, 255, 0.6)';
+            ripple.style.transform = 'translate(-50%, -50%)';
+            ripple.style.animation = 'ripple 0.6s ease-out';
+            
+            this.appendChild(ripple);
+            setTimeout(() => ripple.remove(), 600);
+        });
+
+        // Add CSS for ripple animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes ripple {
+                to {
+                    width: 300px;
+                    height: 300px;
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Real-time validation feedback
+        formInputs.forEach(input => {
+            input.addEventListener('input', function() {
+                if (this.hasAttribute('required')) {
+                    if (this.value.trim()) {
+                        this.style.borderColor = '#4CAF50';
+                    } else {
+                        this.style.borderColor = '#e0e0e0';
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
