@@ -122,30 +122,25 @@
             });
         });
 
-        // Form submission with animation
-        const signupForm = document.getElementById('signupForm');
         const signupButton = document.getElementById('signupButton');
-
+        const signupForm = document.getElementById('signupForm');
         signupForm.addEventListener('submit', function (e) {
             e.preventDefault();
-
             // Add loading state
-            signupButton.classList.add('loading');
+            signupButton.classList.add('loading');  
             signupButton.textContent = '';
+            const spinner = document.createElement('div');
+            spinner.classList.add('spinner');
+            signupButton.appendChild(spinner);
 
-            // Simulate API call
+            // Simulate form submission
             setTimeout(() => {
                 signupButton.classList.remove('loading');
                 signupButton.textContent = 'Create Account';
+                alert('Account created successfully!');
 
-                // Show success (in real app, would redirect)
-                signupButton.textContent = '✓ Account Created!';
-                signupButton.style.background = '#4CAF50';
-
-                setTimeout(() => {
-                    signupButton.textContent = 'Create Account';
-                    signupButton.style.background = '';
-                }, 2000);
+                // Reset form
+                signupForm.reset();
             }, 2000);
         });
 
