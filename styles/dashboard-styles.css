@@ -554,6 +554,7 @@ input:checked+.slider:before {
     padding: 20px;
     border-radius: 15px;
     animation: fadeInRight 0.8s ease 0.7s both;
+    margin-bottom: 30px;
 }
 
 .health-tip h4 {
