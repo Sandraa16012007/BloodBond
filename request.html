@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,6 +11,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&display=swap" rel="stylesheet">
 </head>
+
 <body>
     <!-- Navigation -->
     <nav>
@@ -23,7 +25,7 @@
                 <li><a href="#about">About</a></li>
             </ul>
             <div class="nav-buttons">
-                <button class="btn btn-logout">Logout</button>
+                <a href="index.html" class="btn btn-logout">Logout</a>
             </div>
         </div>
     </nav>
@@ -70,38 +72,24 @@
 
                 <div class="form-group">
                     <label for="hospital">Hospital / Medical Center <span class="required">*</span></label>
-                    <input 
-                        type="text" 
-                        id="hospital" 
-                        class="form-input" 
-                        placeholder="Enter hospital name"
-                        required
-                    >
+                    <input type="text" id="hospital" class="form-input" placeholder="Enter hospital name" required>
                 </div>
 
                 <div class="form-group">
                     <label for="location">Location <span class="required">*</span></label>
-                    <input 
-                        type="text" 
-                        id="location" 
-                        class="form-input" 
-                        placeholder="City, State"
-                        required
-                    >
+                    <input type="text" id="location" class="form-input" placeholder="City, State" required>
                 </div>
 
                 <div class="form-group">
                     <label for="additional">Additional Information</label>
-                    <textarea 
-                        id="additional" 
-                        class="form-textarea" 
-                        placeholder="Any additional details that might help donors..."
-                    ></textarea>
+                    <textarea id="additional" class="form-textarea"
+                        placeholder="Any additional details that might help donors..."></textarea>
                 </div>
 
                 <div class="alert-box">
                     <strong>Note:</strong>
-                    <p>Your request will be shared with nearby donors matching your requirements. Please ensure all information is accurate.</p>
+                    <p>Your request will be shared with nearby donors matching your requirements. Please ensure all
+                        information is accurate.</p>
                 </div>
 
                 <div class="form-actions">
@@ -147,11 +135,11 @@
         // Add focus animation to form groups
         const formInputs = document.querySelectorAll('.form-input, .form-select, .form-textarea');
         formInputs.forEach(input => {
-            input.addEventListener('focus', function() {
+            input.addEventListener('focus', function () {
                 this.closest('.form-group').classList.add('focused');
             });
-            
-            input.addEventListener('blur', function() {
+
+            input.addEventListener('blur', function () {
                 this.closest('.form-group').classList.remove('focused');
             });
         });
@@ -159,14 +147,14 @@
         // Form submission
         const form = document.getElementById('requestForm');
         const submitBtn = document.getElementById('submitBtn');
-        
-        form.addEventListener('submit', function(e) {
+
+        form.addEventListener('submit', function (e) {
             e.preventDefault();
-            
+
             // Validate all required fields
             let isValid = true;
             const requiredFields = form.querySelectorAll('[required]');
-            
+
             requiredFields.forEach(field => {
                 if (!field.value.trim()) {
                     field.classList.add('error');
@@ -183,13 +171,18 @@
             submitBtn.classList.add('loading');
             const originalText = submitBtn.textContent;
             submitBtn.textContent = '';
-            
+
             // Simulate API call
             setTimeout(() => {
                 submitBtn.classList.remove('loading');
                 submitBtn.classList.add('success');
                 submitBtn.textContent = '✓ Request Submitted!';
-                
+
+                // Redirect to dashboard after user sees the success
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html';
+                }, 1000);
+
                 // Reset form after delay
                 setTimeout(() => {
                     form.reset();
@@ -200,24 +193,28 @@
         });
 
         // Cancel button
-        document.getElementById('cancelBtn').addEventListener('click', function() {
+        document.getElementById('cancelBtn').addEventListener('click', function () {
             if (confirm('Are you sure you want to cancel? All entered data will be lost.')) {
                 form.reset();
+                // Redirect to dashboard after user sees the success
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html';
+                }, 1000);
             }
         });
 
         // Smooth scroll for back button
-        document.querySelector('.back-button').addEventListener('click', function(e) {
+        document.querySelector('.back-button').addEventListener('click', function (e) {
             e.preventDefault();
             alert('Navigate back to dashboard');
         });
 
         // Add ripple effect to submit button
-        submitBtn.addEventListener('click', function(e) {
+        submitBtn.addEventListener('click', function (e) {
             const rect = this.getBoundingClientRect();
             const x = e.clientX - rect.left;
             const y = e.clientY - rect.top;
-            
+
             const ripple = document.createElement('span');
             ripple.style.position = 'absolute';
             ripple.style.left = x + 'px';
@@ -228,7 +225,7 @@
             ripple.style.background = 'rgba(255, 255, 255, 0.6)';
             ripple.style.transform = 'translate(-50%, -50%)';
             ripple.style.animation = 'ripple 0.6s ease-out';
-            
+
             this.appendChild(ripple);
             setTimeout(() => ripple.remove(), 600);
         });
@@ -248,7 +245,7 @@
 
         // Real-time validation feedback
         formInputs.forEach(input => {
-            input.addEventListener('input', function() {
+            input.addEventListener('input', function () {
                 if (this.hasAttribute('required')) {
                     if (this.value.trim()) {
                         this.style.borderColor = '#4CAF50';
@@ -260,4 +257,5 @@
         });
     </script>
 </body>
+
 </html>
