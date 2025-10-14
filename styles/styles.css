@@ -125,6 +125,19 @@ nav {
     font-size: 1rem;
 }
 
+.btn-logout {
+    background: transparent;
+    color: #333;
+    border: 2px solid #4722226d;
+    font-size: 1rem;
+}
+
+.btn-logout:hover {
+    border-color: #e63946;
+    color: #e63946;
+    transform: translateY(-2px);
+}
+
 .btn-login:hover {
     border-color: #e63946;
     color: #e63946;

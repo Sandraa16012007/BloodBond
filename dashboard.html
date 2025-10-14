@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - BloodBond</title>
+    <link rel="stylesheet" href="styles/dashboard-styles.css">
+    <link rel="stylesheet" href="styles/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="logo">
+            <span>BloodBond</span>
+        </div>
+        <div class="nav-right">
+            <ul class="nav-links">
+                <li><a href="#home">Home</a></li>
+                <li><a href="#about">About</a></li>
+            </ul>
+            <div class="nav-buttons">
+                <button class="btn btn-logout">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Welcome Section -->
+        <div class="welcome-section">
+            <h1>Welcome back, Sandra!</h1>
+            <p>Here's your impact at a glance</p>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-info">
+                    <h3>Blood Group</h3>
+                    <div class="stat-value">O+</div>
+                </div>
+                <div class="stat-icons red">🩸</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-info">
+                    <h3>Total Donations</h3>
+                    <div class="stat-value">5</div>
+                </div>
+                <div class="stat-icons pink">📈</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-info">
+                    <h3>Lives Saved</h3>
+                    <div class="stat-value">15</div>
+                </div>
+                <div class="stat-icons light-red">❤️</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-info">
+                    <h3>Status</h3>
+                    <div class="status-badge">Active</div>
+                </div>
+                <div class="stat-icons badge">🏆</div>
+            </div>
+        </div>
+
+        <!-- Main Content Grid -->
+        <div class="content-grid">
+            <!-- Left Column -->
+            <div>
+                <!-- Active Status Card -->
+                <div class="active-card">
+                    <h2>You're Currently Active</h2>
+                    <p>Thank you for being available to donate! You'll receive notifications when someone nearby needs
+                        O+.</p>
+                    <button class="btn-view">View Blood Requests</button>
+                </div>
+
+                <!-- Nearby Requests -->
+                <div class="requests-section">
+                    <h2>Nearby Requests</h2>
+
+                    <div class="request-card">
+                        <div class="request-header">
+                            <div class="requester-info">
+                                <span class="requester-name">Sarah Johnson</span>
+                                <span class="priority-badge high">High Priority</span>
+                            </div>
+                        </div>
+                        <div class="request-details">
+                            <div class="detail-row blood">
+                                Blood Group: <span class="blood-type">O+</span>
+                            </div>
+                            <div class="detail-row location">
+                                City General Hospital • 2.3 km away
+                            </div>
+                            <div class="detail-row time">
+                                30 mins ago
+                            </div>
+                        </div>
+                        <div class="request-actions">
+                            <button class="btn-accept">Accept</button>
+                            <button class="btn-decline">Decline</button>
+                        </div>
+                    </div>
+
+                    <div class="request-card">
+                        <div class="request-header">
+                            <div class="requester-info">
+                                <span class="requester-name">Michael Chen</span>
+                                <span class="priority-badge medium">Medium Priority</span>
+                            </div>
+                        </div>
+                        <div class="request-details">
+                            <div class="detail-row blood">
+                                Blood Group: <span class="blood-type">O-</span>
+                            </div>
+                            <div class="detail-row location">
+                                St. Mary's Medical Center • 5.1 km away
+                            </div>
+                            <div class="detail-row time">
+                                2 hours ago
+                            </div>
+                        </div>
+                        <div class="request-actions">
+                            <button class="btn-accept">Accept</button>
+                            <button class="btn-decline">Decline</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Sidebar -->
+            <div class="sidebar">
+                <!-- Donation History -->
+                <div class="donation-history">
+                    <h3>Donation History</h3>
+                    <div class="history-row">
+                        <span class="history-label">Last Donation</span>
+                        <span class="history-value">March 15, 2024</span>
+                    </div>
+                    <div class="history-row">
+                        <span class="history-label">Next Eligible</span>
+                        <span class="history-value">June 15, 2024</span>
+                    </div>
+                    <div class="info-box">
+                        <p>You can donate blood every 90 days. Stay healthy and hydrated!</p>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="quick-actions">
+                    <h3>Quick Actions</h3>
+                    <button class="action-btn request">Request Blood</button>
+                    <button class="action-btn profile">View Profile</button>
+                </div>
+
+                <!-- Health Tip -->
+                <div class="health-tip">
+                    <h4>Health Tip</h4>
+                    <p>Drink plenty of water before and after donating blood. Stay hydrated to help your body recover
+                        quickly!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer id="about">
+        <div class="footer-content">
+            <div>
+                <div class="footer-logo">
+                    <span>BloodBond</span>
+                </div>
+                <p class="footer-desc">Connecting blood donors with those in need. Every donation saves lives.</p>
+            </div>
+            <div class="footer-section">
+                <h4>Quick Links</h4>
+                <ul class="footer-links">
+                    <li><a href="#home">Home</a></li>
+                    <li><a href="#about">About Us</a></li>
+                    <li><a href="#register">Register</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Legal</h4>
+                <ul class="footer-links">
+                    <li><a href="#privacy">Privacy Policy</a></li>
+                    <li><a href="#terms">Terms of Service</a></li>
+                    <li><a href="#contact">Contact Us</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 BloodBond. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Add click animations to buttons
+        document.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('click', function (e) {
+                this.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    this.style.transform = '';
+                }, 150);
+            });
+        });
+
+        // Animate stats on load
+        document.querySelectorAll('.stat-value').forEach(stat => {
+            if (!isNaN(stat.textContent)) {
+                const value = parseInt(stat.textContent);
+                let current = 0;
+                const increment = value / 50;
+                const timer = setInterval(() => {
+                    current += increment;
+                    if (current >= value) {
+                        stat.textContent = value;
+                        clearInterval(timer);
+                    } else {
+                        stat.textContent = Math.floor(current);
+                    }
+                }, 20);
+            }
+        });
+    </script>
+</body>
+
+</html>
