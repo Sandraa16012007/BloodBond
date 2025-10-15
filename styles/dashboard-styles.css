@@ -296,9 +296,11 @@ body {
 }
 
 .priority-badge.critical {
-    background: #d62839; /* A darker red for more urgency */
+    background: #d62839;
+    /* A darker red for more urgency */
     color: white;
-    animation: pulse 1.5s infinite; /* Add a pulse animation */
+    animation: pulse 1.5s infinite;
+    /* Add a pulse animation */
 }
 
 .priority-badge.high {
@@ -504,7 +506,7 @@ body {
     content: '❤️';
 }
 
-.action-btn.request{
+.action-btn.request {
     background: linear-gradient(135deg, #ffdde1 0%, #ee9ca7 100%);
 }
 
@@ -585,6 +587,135 @@ input:checked+.slider:before {
     color: #666;
     font-size: 0.95rem;
     line-height: 1.6;
+}
+
+.user-requests-section {
+    margin-top: 32px;
+    margin-bottom: 30px;
+}
+
+.user-requests-section h2 {
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: #1a1a1a;
+}
+
+.user-request-card {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    border-left: 4px solid #E63946;
+}
+
+.user-request-card:hover {
+    box-shadow: 0 6px 20px rgba(230, 57, 70, 0.15);
+    transform: translateY(-2px);
+}
+
+.user-request-card .request-header {
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.user-request-card .requester-info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.user-request-card .requester-name {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1a1a1a;
+}
+
+.user-request-card .request-details {
+    margin-bottom: 20px;
+}
+
+.user-request-card .detail-row {
+    margin-bottom: 10px;
+    color: #666;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.user-request-card .detail-row strong {
+    color: #333;
+    font-weight: 600;
+}
+
+.user-request-card .detail-row.time {
+    color: #999;
+    font-size: 13px;
+    margin-top: 12px;
+}
+
+.user-request-card .request-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.btn-view-details {
+    flex: 1;
+    min-width: 140px;
+    padding: 12px 24px;
+    background: #E63946;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 14px;
+}
+
+.btn-view-details:hover {
+    background: #d32f3c;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(230, 57, 70, 0.3);
+}
+
+.btn-cancel-request {
+    flex: 1;
+    min-width: 140px;
+    padding: 12px 24px;
+    background: transparent;
+    color: #E63946;
+    border: 2px solid #E63946;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 14px;
+}
+
+.btn-cancel-request:hover {
+    background: #E63946;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(230, 57, 70, 0.3);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .user-request-card .request-actions {
+        flex-direction: column;
+    }
+
+    .btn-view-details,
+    .btn-cancel-request {
+        width: 100%;
+        min-width: unset;
+    }
 }
 
 /* Responsive */
