@@ -31,7 +31,8 @@ import {
     where,
     getDocs,
     orderBy,
-    limit
+    limit,
+    addDoc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 // For later: Firebase Cloud Messaging (optional)
@@ -70,6 +71,121 @@ if (getLocationBtn) {
             alert("Geolocation is not supported by your browser.");
         }
     });
+}
+
+// ------------------------------------------------------------------------------------------------------
+// 🩸 BLOOD REQUEST SUBMISSION (Request Form Page Only)
+// ------------------------------------------------------------------------------------------------------
+
+if (window.location.pathname.includes("request.html") || window.location.pathname.endsWith("request.html")) {
+    
+    // Check authentication but don't redirect yet - let form load first
+    onAuthStateChanged(auth, async (user) => {
+        if (!user) {
+            alert("⚠️ You must be logged in to submit a blood request.");
+            window.location.href = "login.html";
+            return;
+        }
+    });
+
+    const requestFormElement = document.getElementById("requestForm");
+    
+    if (requestFormElement) {
+        // Remove existing submit listener to avoid conflicts
+        const newForm = requestFormElement.cloneNode(true);
+        requestFormElement.parentNode.replaceChild(newForm, requestFormElement);
+        
+        newForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const currentUser = auth.currentUser;
+            if (!currentUser) {
+                alert("⚠️ Please log in first.");
+                window.location.href = "login.html";
+                return;
+            }
+
+            // Check if location was fetched
+            if (!userLocation.lat || !userLocation.lng) {
+                alert("⚠️ Please click 'Get My Location' button before submitting.");
+                return;
+            }
+
+            // Get form values
+            const bloodGroup = document.getElementById("bloodGroup").value;
+            const urgency = document.getElementById("urgency").value;
+            const hospital = document.getElementById("hospital").value.trim();
+            const locationText = document.getElementById("location").value.trim();
+            const additional = document.getElementById("additional").value.trim();
+
+            if (!bloodGroup || !urgency || !hospital) {
+                alert("⚠️ Please fill all required fields.");
+                return;
+            }
+
+            // Map urgency to priority
+            const urgencyToPriority = {
+                'critical': 'Critical',
+                'high': 'High',
+                'medium': 'Medium',
+                'low': 'Low'
+            };
+
+            const submitButton = document.getElementById("submitBtn");
+            submitButton.disabled = true;
+            submitButton.textContent = "Submitting...";
+
+            try {
+                // Get user's data
+                const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+                const userData = userDoc.exists() ? userDoc.data() : {};
+
+                // Create blood request
+                const requestData = {
+                    bloodGroup: bloodGroup,
+                    priority: urgencyToPriority[urgency] || 'Medium',
+                    urgency: urgency,
+                    hospital: hospital,
+                    locationText: locationText,
+                    coordinates: {
+                        lat: userLocation.lat,
+                        lng: userLocation.lng
+                    },
+                    additionalInfo: additional || "",
+                    patientName: userData.fullName || "Anonymous",
+                    requestedBy: currentUser.uid,
+                    requestedByEmail: currentUser.email,
+                    requestedByPhone: userData.phone || "",
+                    status: "active",
+                    createdAt: new Date()
+                };
+
+                // Add to Firebase
+                await addDoc(collection(db, "bloodRequests"), requestData);
+
+                alert("🎉 Blood request submitted successfully!");
+                newForm.reset();
+                userLocation = { lat: null, lng: null };
+                window.location.href = 'dashboard.html';
+
+            } catch (error) {
+                console.error("Error submitting request:", error);
+                alert("❌ Failed to submit request. Please try again.");
+                submitButton.disabled = false;
+                submitButton.textContent = "Submit Request";
+            }
+        });
+
+        // Cancel button handler
+        const cancelButton = document.getElementById("cancelBtn");
+        if (cancelButton) {
+            cancelButton.addEventListener("click", function() {
+                if (confirm('Are you sure you want to cancel?')) {
+                    window.location.href = 'dashboard.html';
+                }
+            });
+        }
+    }
 }
 
 // ------------------------------------------------------------------------------------------------------
@@ -304,7 +420,7 @@ if (window.location.pathname.includes("dashboard.html")) {
                         activeCardText.textContent = `Thank you for being available to donate! You'll receive notifications when someone nearby needs ${userData.bloodGroup || "blood"}.`;
                     }
 
-                    // Load blood requests (will replace hardcoded ones)
+                    // Load blood requests (within 5km radius)
                     await loadBloodRequests(userData.bloodGroup, userData.coordinates);
 
                     // Mark dashboard as loaded
@@ -348,7 +464,7 @@ if (window.location.pathname.includes("dashboard.html")) {
         }
     }
 
-    // Function to load blood requests - REPLACES ALL HARDCODED CONTENT
+    // Function to load blood requests - ONLY SHOW REQUESTS WITHIN 5KM
     async function loadBloodRequests(userBloodGroup, userCoordinates) {
         const requestsContainer = document.querySelector('#requestsSection');
         if (!requestsContainer) return;
@@ -357,78 +473,107 @@ if (window.location.pathname.includes("dashboard.html")) {
             // COMPLETELY CLEAR the requests section first
             requestsContainer.innerHTML = '<h2>Blood Requests</h2>';
 
-            // Query blood requests collection
+            // Query ALL active blood requests (we'll filter and sort by distance in JS)
+            // Removed orderBy to avoid Firestore index requirement
             const requestsQuery = query(
                 collection(db, "bloodRequests"),
-                where("status", "==", "active"),
-                orderBy("createdAt", "desc"),
-                limit(10)
+                where("status", "==", "active")
             );
 
             const querySnapshot = await getDocs(requestsQuery);
+            console.log("Total active requests found:", querySnapshot.size);
 
             if (querySnapshot.empty) {
-                // No requests found - show styled empty state
-                requestsContainer.innerHTML = `
-                    <h2>Blood Requests</h2>
-                    <div style="padding: 60px 20px; text-align: center; background: white; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-top: 20px;">
-                        <div style="font-size: 64px; margin-bottom: 20px; opacity: 0.7;">🩸</div>
-                        <h3 style="color: #333; font-size: 20px; margin-bottom: 12px; font-weight: 600;">No Active Blood Requests</h3>
-                        <p style="color: #666; font-size: 15px; margin: 0; line-height: 1.6;">There are currently no blood donation requests in your area.</p>
-                        <p style="color: #999; font-size: 14px; margin-top: 8px;">We'll notify you immediately when someone needs ${userBloodGroup || 'your blood type'}.</p>
-                    </div>
-                `;
+                showEmptyState(requestsContainer, userBloodGroup);
                 return;
             }
 
-            // Build requests HTML
-            let requestsHTML = '<h2>Blood Requests</h2>';
-
+            // Filter requests within 5km and collect them
+            const nearbyRequests = [];
+            
             querySnapshot.forEach((docSnap) => {
                 const request = docSnap.data();
                 const requestId = docSnap.id;
 
+                console.log("Processing request:", requestId, request);
+
                 // Calculate distance if coordinates are available
-                let distance = "Location not specified";
-                if (userCoordinates && request.coordinates) {
-                    const dist = calculateDistance(
+                if (userCoordinates && userCoordinates.lat && userCoordinates.lng && 
+                    request.coordinates && request.coordinates.lat && request.coordinates.lng) {
+                    
+                    const distance = calculateDistance(
                         userCoordinates.lat,
                         userCoordinates.lng,
                         request.coordinates.lat,
                         request.coordinates.lng
                     );
-                    distance = `${dist.toFixed(1)} km away`;
+
+                    console.log(`Request ${requestId} is ${distance.toFixed(2)} km away`);
+
+                    // Only include requests within 5km radius
+                    if (distance <= 5) {
+                        nearbyRequests.push({
+                            id: requestId,
+                            data: request,
+                            distance: distance
+                        });
+                    }
+                } else {
+                    console.log("Missing coordinates for request:", requestId);
                 }
+            });
 
-                // Calculate time ago
-                const timeAgo = getTimeAgo(request.createdAt);
+            console.log("Nearby requests (within 5km):", nearbyRequests.length);
 
-                // Get priority class
-                const priorityClass = (request.priority || 'medium').toLowerCase();
-                const priorityText = (request.priority || 'Medium').charAt(0).toUpperCase() + (request.priority || 'Medium').slice(1).toLowerCase();
+            // If no nearby requests found
+            if (nearbyRequests.length === 0) {
+                console.log("No nearby requests found");
+                showEmptyState(requestsContainer, userBloodGroup);
+                return;
+            }
+
+            // Sort by distance (closest first), then by time (newest first)
+            nearbyRequests.sort((a, b) => {
+                // First sort by distance
+                if (a.distance !== b.distance) {
+                    return a.distance - b.distance;
+                }
+                // If same distance, sort by time
+                const timeA = a.data.createdAt?.toDate ? a.data.createdAt.toDate().getTime() : 0;
+                const timeB = b.data.createdAt?.toDate ? b.data.createdAt.toDate().getTime() : 0;
+                return timeB - timeA;
+            });
+
+            // Build requests HTML
+            let requestsHTML = '<h2>Blood Requests Nearby (Within 5km)</h2>';
+
+            nearbyRequests.forEach(({ id, data, distance }) => {
+                const timeAgo = getTimeAgo(data.createdAt);
+                const priorityClass = (data.priority || 'medium').toLowerCase();
+                const priorityText = (data.priority || 'Medium').charAt(0).toUpperCase() + (data.priority || 'Medium').slice(1).toLowerCase();
 
                 requestsHTML += `
                     <div class="request-card">
                         <div class="request-header">
                             <div class="requester-info">
-                                <span class="requester-name">${request.patientName || 'Anonymous Patient'}</span>
+                                <span class="requester-name">${data.patientName || 'Anonymous Patient'}</span>
                                 <span class="priority-badge ${priorityClass}">${priorityText} Priority</span>
                             </div>
                         </div>
                         <div class="request-details">
                             <div class="detail-row blood">
-                                Blood Group: <span class="blood-type">${request.bloodGroup || 'Not specified'}</span>
+                                Blood Group: <span class="blood-type">${data.bloodGroup || 'Not specified'}</span>
                             </div>
                             <div class="detail-row location">
-                                ${request.hospital || 'Hospital'} • ${distance}
+                                ${data.hospital || 'Hospital'} • ${distance.toFixed(1)} km away
                             </div>
                             <div class="detail-row time">
                                 ${timeAgo}
                             </div>
                         </div>
                         <div class="request-actions">
-                            <a href="showRequest.html?id=${requestId}" class="btn-accept">Accept Request</a>
-                            <button class="btn-decline" data-request-id="${requestId}">Decline</button>
+                            <a href="showRequest.html?id=${id}" class="btn-accept">Accept Request</a>
+                            <button class="btn-decline" data-request-id="${id}">Decline</button>
                         </div>
                     </div>
                 `;
@@ -448,18 +593,21 @@ if (window.location.pathname.includes("dashboard.html")) {
 
         } catch (error) {
             console.error("Error loading blood requests:", error);
-
-            // Show empty state on error (likely collection doesn't exist)
-            requestsContainer.innerHTML = `
-                <h2>Blood Requests</h2>
-                <div style="padding: 60px 20px; text-align: center; background: white; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-top: 20px;">
-                    <div style="font-size: 64px; margin-bottom: 20px; opacity: 0.7;">🩸</div>
-                    <h3 style="color: #333; font-size: 20px; margin-bottom: 12px; font-weight: 600;">No Active Blood Requests</h3>
-                    <p style="color: #666; font-size: 15px; margin: 0; line-height: 1.6;">There are currently no blood donation requests in your area.</p>
-                    <p style="color: #999; font-size: 14px; margin-top: 8px;">We'll notify you immediately when someone needs ${userBloodGroup || 'your blood type'}.</p>
-                </div>
-            `;
+            showEmptyState(requestsContainer, userBloodGroup);
         }
+    }
+
+    // Helper function to show empty state
+    function showEmptyState(container, bloodGroup) {
+        container.innerHTML = `
+            <h2>Blood Requests</h2>
+            <div style="padding: 60px 20px; text-align: center; background: white; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-top: 20px;">
+                <div style="font-size: 64px; margin-bottom: 20px; opacity: 0.7;">🩸</div>
+                <h3 style="color: #333; font-size: 20px; margin-bottom: 12px; font-weight: 600;">No Active Blood Requests Nearby</h3>
+                <p style="color: #666; font-size: 15px; margin: 0; line-height: 1.6;">There are currently no blood donation requests within 5km of your location.</p>
+                <p style="color: #999; font-size: 14px; margin-top: 8px;">We'll notify you immediately when someone nearby needs ${bloodGroup || 'your blood type'}.</p>
+            </div>
+        `;
     }
 
     // Helper function to calculate distance between two coordinates

@@ -77,8 +77,10 @@
 
                 <div class="form-group">
                     <label for="location">Location *</label>
-                    <input type="text" id="location" placeholder="Fetching location..." readonly>
-                    <button type="button" id="getLocationBtn">📍 Get My Location</button>
+                    <div class="location-wrapper">
+                        <input type="text" id="location" class="form-input" placeholder="Click the button to get location" readonly required>
+                        <button type="button" id="getLocationBtn">📍 Get My Location</button>
+                    </div>
                 </div>
 
                 <div class="form-group">
@@ -132,131 +134,6 @@
         </div>
     </footer>
 
-    <script>
-        // Add focus animation to form groups
-        const formInputs = document.querySelectorAll('.form-input, .form-select, .form-textarea');
-        formInputs.forEach(input => {
-            input.addEventListener('focus', function () {
-                this.closest('.form-group').classList.add('focused');
-            });
-
-            input.addEventListener('blur', function () {
-                this.closest('.form-group').classList.remove('focused');
-            });
-        });
-
-        // Form submission
-        const form = document.getElementById('requestForm');
-        const submitBtn = document.getElementById('submitBtn');
-
-        form.addEventListener('submit', function (e) {
-            e.preventDefault();
-
-            // Validate all required fields
-            let isValid = true;
-            const requiredFields = form.querySelectorAll('[required]');
-
-            requiredFields.forEach(field => {
-                if (!field.value.trim()) {
-                    field.classList.add('error');
-                    isValid = false;
-                    setTimeout(() => field.classList.remove('error'), 500);
-                } else {
-                    field.classList.remove('error');
-                }
-            });
-
-            if (!isValid) return;
-
-            // Add loading state
-            submitBtn.classList.add('loading');
-            const originalText = submitBtn.textContent;
-            submitBtn.textContent = '';
-
-            // Simulate API call
-            setTimeout(() => {
-                submitBtn.classList.remove('loading');
-                submitBtn.classList.add('success');
-                submitBtn.textContent = '✓ Request Submitted!';
-
-                // Redirect to dashboard after user sees the success
-                setTimeout(() => {
-                    window.location.href = 'dashboard.html';
-                }, 1000);
-
-                // Reset form after delay
-                setTimeout(() => {
-                    form.reset();
-                    submitBtn.classList.remove('success');
-                    submitBtn.textContent = originalText;
-                }, 2000);
-            }, 2000);
-        });
-
-        // Cancel button
-        document.getElementById('cancelBtn').addEventListener('click', function () {
-            if (confirm('Are you sure you want to cancel? All entered data will be lost.')) {
-                form.reset();
-                // Redirect to dashboard after user sees the success
-                setTimeout(() => {
-                    window.location.href = 'dashboard.html';
-                }, 1000);
-            }
-        });
-
-        // Smooth scroll for back button
-        document.querySelector('.back-button').addEventListener('click', function (e) {
-            e.preventDefault();
-            alert('Navigate back to dashboard');
-        });
-
-        // Add ripple effect to submit button
-        submitBtn.addEventListener('click', function (e) {
-            const rect = this.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-
-            const ripple = document.createElement('span');
-            ripple.style.position = 'absolute';
-            ripple.style.left = x + 'px';
-            ripple.style.top = y + 'px';
-            ripple.style.width = '0';
-            ripple.style.height = '0';
-            ripple.style.borderRadius = '50%';
-            ripple.style.background = 'rgba(255, 255, 255, 0.6)';
-            ripple.style.transform = 'translate(-50%, -50%)';
-            ripple.style.animation = 'ripple 0.6s ease-out';
-
-            this.appendChild(ripple);
-            setTimeout(() => ripple.remove(), 600);
-        });
-
-        // Add CSS for ripple animation
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes ripple {
-                to {
-                    width: 300px;
-                    height: 300px;
-                    opacity: 0;
-                }
-            }
-        `;
-        document.head.appendChild(style);
-
-        // Real-time validation feedback
-        formInputs.forEach(input => {
-            input.addEventListener('input', function () {
-                if (this.hasAttribute('required')) {
-                    if (this.value.trim()) {
-                        this.style.borderColor = '#4CAF50';
-                    } else {
-                        this.style.borderColor = '#e0e0e0';
-                    }
-                }
-            });
-        });
-    </script>
     <script type="module" src="scripts/script.js"></script>
 </body>
 

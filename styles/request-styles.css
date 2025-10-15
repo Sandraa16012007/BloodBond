@@ -358,6 +358,31 @@ body::after {
     transform: translateY(-2px);
 }
 
+/* Location Wrapper from signup page for consistency */
+.location-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.location-wrapper input {
+    flex-grow: 1;
+    /* The input takes up the available space */
+}
+
+.location-wrapper button {
+    padding: 15px 18px;
+    background-color: #f1f3f5;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 600;
+    color: #495057;
+    white-space: nowrap;
+    transition: all 0.2s ease-in-out;
+}
+
+
 /* Loading state */
 .btn-submit.loading {
     pointer-events: none;
