@@ -80,14 +80,16 @@
                 <!-- Active Status Card -->
                 <div class="active-card" id="activeCard">
                     <h2 id="activeCardTitle">You're Currently Active</h2>
-                    <p id="activeCardText">Thank you for being available to donate! You'll receive notifications when someone nearby needs
+                    <p id="activeCardText">Thank you for being available to donate! You'll receive notifications when
+                        someone nearby needs
                         O+.</p>
                 </div>
 
                 <!-- Inactive Status Card -->
                 <div class="inactive-card" id="inactiveCard" style="display: none;">
                     <h2>You're Currently Inactive</h2>
-                    <p>You will not receive donation requests. Toggle your status back to "Active" when you're available to help.</p>
+                    <p>You will not receive donation requests. Toggle your status back to "Active" when you're available
+                        to help.</p>
                 </div>
 
                 <!-- Nearby Requests -->
@@ -173,6 +175,13 @@
                             <span class="slider round"></span>
                         </label>
                     </div>
+                    <div class="action-toggle">
+                        <span>Enable Notifications 🔔</span>
+                        <label class="switch">
+                            <input type="checkbox" id="enableNotificationsToggle">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
                 </div>
 
                 <!-- Health Tip -->
@@ -217,7 +226,48 @@
     </footer>
 
     <script>
-        // Add click animations to buttons
+        // PREVENT ANIMATIONS IF FIREBASE DATA IS LOADED
+        // Wait for Firebase to load data before running any animations
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check every 100ms if Firebase data is loaded
+            const checkFirebaseLoad = setInterval(() => {
+                if (window.dashboardDataLoaded) {
+                    clearInterval(checkFirebaseLoad);
+                    console.log("Firebase data loaded, skipping animations");
+                    return;
+                }
+            }, 100);
+
+            // Timeout after 3 seconds and run animations if Firebase hasn't loaded
+            setTimeout(() => {
+                clearInterval(checkFirebaseLoad);
+                if (!window.dashboardDataLoaded) {
+                    // Only animate stats that don't have Firebase data
+                    document.querySelectorAll('.stat-value').forEach(stat => {
+                        if (stat.hasAttribute('data-firebase-loaded')) {
+                            return; // Skip Firebase-loaded stats
+                        }
+
+                        if (!isNaN(stat.textContent)) {
+                            const value = parseInt(stat.textContent);
+                            let current = 0;
+                            const increment = value / 50;
+                            const timer = setInterval(() => {
+                                current += increment;
+                                if (current >= value) {
+                                    stat.textContent = value;
+                                    clearInterval(timer);
+                                } else {
+                                    stat.textContent = Math.floor(current);
+                                }
+                            }, 20);
+                        }
+                    });
+                }
+            }, 3000);
+        });
+
+        // Button click animations
         document.querySelectorAll('button').forEach(btn => {
             btn.addEventListener('click', function (e) {
                 this.style.transform = 'scale(0.95)';
@@ -226,58 +276,9 @@
                 }, 150);
             });
         });
-
-        // Status toggle functionality
-        const statusToggle = document.getElementById('statusToggle');
-        const statusBadge = document.getElementById('statusBadge');
-        const activeCard = document.getElementById('activeCard');
-        const inactiveCard = document.getElementById('inactiveCard');
-        const requestsSection = document.getElementById('requestsSection');
-
-        statusToggle.addEventListener('change', function() {
-            const isActive = this.checked;
-            if (isActive) {
-                // Set to Active
-                statusBadge.textContent = 'Active';
-                statusBadge.classList.remove('inactive');
-                activeCard.style.display = 'block'; // Or 'flex' if it's a flex container
-                inactiveCard.style.display = 'none';
-                requestsSection.style.display = 'block';
-            } else {
-                // Set to Inactive
-                statusBadge.textContent = 'Inactive';
-                statusBadge.classList.add('inactive');
-                activeCard.style.display = 'none';
-                inactiveCard.style.display = 'block'; // Or 'flex'
-                requestsSection.style.display = 'none';
-            }
-        });
-
-        // Ensure the correct state is shown on page load
-        document.addEventListener('DOMContentLoaded', () => {
-            // Trigger the change event to set the initial state
-            statusToggle.dispatchEvent(new Event('change'));
-        });
-
-
-        // Animate stats on load
-        document.querySelectorAll('.stat-value').forEach(stat => {
-            if (!isNaN(stat.textContent)) {
-                const value = parseInt(stat.textContent);
-                let current = 0;
-                const increment = value / 50;
-                const timer = setInterval(() => {
-                    current += increment;
-                    if (current >= value) {
-                        stat.textContent = value;
-                        clearInterval(timer);
-                    } else {
-                        stat.textContent = Math.floor(current);
-                    }
-                }, 20);
-            }
-        });
     </script>
+    
+    <script type="module" src="scripts/script.js"></script>
 </body>
 
 </html>

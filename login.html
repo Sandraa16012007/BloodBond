@@ -96,33 +96,6 @@
             });
         });
 
-        // Form submission with animation
-        const loginForm = document.getElementById('loginForm');
-        const loginButton = document.getElementById('loginButton');
-
-        loginForm.addEventListener('submit', function (e) {
-            e.preventDefault();
-
-            // Add loading state
-            loginButton.classList.add('loading');
-            loginButton.textContent = '';
-
-            // Simulate API call
-            setTimeout(() => {
-                loginButton.classList.remove('loading');
-                loginButton.textContent = 'Login';
-
-                // Show success (in real app, would redirect)
-                loginButton.textContent = '✓ Success!';
-                loginButton.style.background = '#4CAF50';
-
-                // Redirect to dashboard after user sees the success
-                setTimeout(() => {
-                    window.location.href = 'dashboard.html';
-                }, 1000);
-            }, 2000);
-        });
-
         // Input validation animation
         formInputs.forEach(input => {
             input.addEventListener('invalid', function (e) {
@@ -176,6 +149,7 @@
         `;
         document.head.appendChild(style);
     </script>
+    <script type="module" src="scripts/script.js"></script>
 </body>
 
 </html>
