@@ -295,6 +295,12 @@ body {
     font-weight: 600;
 }
 
+.priority-badge.critical {
+    background: #d62839; /* A darker red for more urgency */
+    color: white;
+    animation: pulse 1.5s infinite; /* Add a pulse animation */
+}
+
 .priority-badge.high {
     background: #e63946;
     color: white;
