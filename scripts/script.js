@@ -32,7 +32,8 @@ import {
     getDocs,
     orderBy,
     limit,
-    addDoc
+    addDoc,
+    deleteDoc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 // For later: Firebase Cloud Messaging (optional)
@@ -419,6 +420,316 @@ if (loginForm) {
 }
 
 // ------------------------------------------------------------------------------------------------------
+// 🩸 SHOW DONORS PAGE (showDonors.html)
+// ------------------------------------------------------------------------------------------------------
+
+if (window.location.pathname.includes("showDonors.html")) {
+    console.log("Show Donors page detected");
+
+    onAuthStateChanged(auth, async (user) => {
+        if (!user) {
+            alert("⚠️ You must be logged in to view donors.");
+            window.location.href = "login.html";
+            return;
+        }
+
+        // Get request ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const requestId = urlParams.get('id');
+
+        if (!requestId) {
+            alert("⚠️ No request ID provided.");
+            window.location.href = "dashboard.html";
+            return;
+        }
+
+        try {
+            // Fetch request details
+            const requestDoc = await getDoc(doc(db, "bloodRequests", requestId));
+            
+            if (!requestDoc.exists()) {
+                alert("⚠️ Request not found.");
+                window.location.href = "dashboard.html";
+                return;
+            }
+
+            const requestData = requestDoc.data();
+
+            // Check if the logged-in user is the owner of this request
+            if (requestData.requestedBy !== user.uid) {
+                alert("⚠️ You can only view donors for your own requests.");
+                window.location.href = "dashboard.html";
+                return;
+            }
+
+            // Fetch accepted donors for this request
+            const acceptedDonorsQuery = query(
+                collection(db, "acceptedDonations"),
+                where("requestId", "==", requestId),
+                where("status", "==", "accepted")
+            );
+
+            const donorsSnapshot = await getDocs(acceptedDonorsQuery);
+            const donorsSection = document.getElementById('donorsSection');
+
+            if (!donorsSection) return;
+
+            if (donorsSnapshot.empty) {
+                // No donors have accepted yet
+                donorsSection.innerHTML = `
+                    <h2>Donors Who Accepted Your Request</h2>
+                    <div style="padding: 60px 20px; text-align: center; background: white; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-top: 20px; margin-bottom: 40px;">
+                        <div style="font-size: 64px; margin-bottom: 20px; opacity: 0.7;">⏳</div>
+                        <h3 style="color: #333; font-size: 20px; margin-bottom: 12px; font-weight: 600;">No Donors Yet</h3>
+                        <p style="color: #666; font-size: 15px; margin: 0 0 12px 0; line-height: 1.6;">
+                            No donors have accepted your request yet. We've notified compatible donors in your area.
+                        </p>
+                        <p style="color: #999; font-size: 14px; margin: 0; line-height: 1.6;">
+                            Blood Type Needed: <strong>${requestData.bloodGroup}</strong><br>
+                            Hospital: <strong>${requestData.hospital}</strong>
+                        </p>
+                        <a href="dashboard.html" style="display: inline-block; margin-top: 20px; padding: 10px 24px; background: #e63946; color: white; text-decoration: none; border-radius: 8px; font-weight: 600;">Back to Dashboard</a>
+                    </div>
+                `;
+                return;
+            }
+
+            // Build donors HTML
+            let donorsHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2 style="margin: 0;">Donors Who Accepted Your Request</h2>
+                    <span style="background: #e8f5e9; color: #2e7d32; padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: 600;">
+                        ✓ ${donorsSnapshot.size} Donor${donorsSnapshot.size !== 1 ? 's' : ''} Available
+                    </span>
+                </div>
+            `;
+
+            // Fetch donor details for each accepted donation
+            const donorPromises = [];
+            donorsSnapshot.forEach((docSnap) => {
+                const acceptedData = docSnap.data();
+                donorPromises.push(
+                    getDoc(doc(db, "users", acceptedData.donorId)).then(donorDoc => ({
+                        acceptedData,
+                        donorData: donorDoc.exists() ? donorDoc.data() : null
+                    }))
+                );
+            });
+
+            const donors = await Promise.all(donorPromises);
+
+            // Calculate distances and build cards
+            for (const { acceptedData, donorData } of donors) {
+                if (!donorData) continue;
+
+                let distance = null;
+                if (donorData.coordinates && requestData.coordinates) {
+                    distance = calculateDistance(
+                        donorData.coordinates.lat,
+                        donorData.coordinates.lng,
+                        requestData.coordinates.lat,
+                        requestData.coordinates.lng
+                    );
+                }
+
+                const timeAgo = getTimeAgo(acceptedData.acceptedAt);
+                const distanceText = distance !== null ? `${distance.toFixed(1)} km away` : 'Distance not available';
+
+                donorsHTML += `
+                    <div class="donor-card">
+                        <div class="card-header">
+                            <div class="profile">
+                                <div class="icon"><i class="fas fa-user"></i></div>
+                                <div class="info">
+                                    <h3>${donorData.fullName || 'Anonymous Donor'}</h3>
+                                    <span class="available">Available</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card-body">
+                            <div class="details">
+                                <div class="detail-item">
+                                    <i class="fas fa-tint"></i>
+                                    <span>Blood Group: <strong>${donorData.bloodGroup}</strong></span>
+                                </div>
+                                <div class="detail-item">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    <span>Location: <strong>${distanceText}</strong></span>
+                                </div>
+                                <div class="detail-item">
+                                    <i class="fas fa-phone"></i>
+                                    <span>Contact: <strong>${donorData.phone || 'Not provided'}</strong></span>
+                                </div>
+                                <div class="detail-item">
+                                    <i class="fas fa-envelope"></i>
+                                    <span>Email: <strong>${donorData.email || 'Not provided'}</strong></span>
+                                </div>
+                            </div>
+
+                            <div class="note">
+                                Accepted ${timeAgo}. ${donorData.totalDonations ? `This donor has made ${donorData.totalDonations} donation${donorData.totalDonations !== 1 ? 's' : ''} before.` : 'First-time donor.'}
+                            </div>
+                        </div>
+
+                        <div class="card-footer">
+                            <button class="btn contact" onclick="window.location.href='tel:${donorData.phone || ''}'">
+                                <i class="fas fa-phone"></i> Contact Donor
+                            </button>
+                            <button class="btn message" onclick="window.location.href='mailto:${donorData.email || ''}'">
+                                <i class="fas fa-envelope"></i> Send Email
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            donorsSection.innerHTML = donorsHTML;
+
+        } catch (error) {
+            console.error("Error loading donors:", error);
+            alert("❌ Failed to load donors. Please try again.");
+            window.location.href = "dashboard.html";
+        }
+    });
+}
+
+// ------------------------------------------------------------------------------------------------------
+// 🩸 SHOW REQUEST PAGE (showRequest.html) - UPDATED WITH ACCEPT FUNCTIONALITY
+// ------------------------------------------------------------------------------------------------------
+
+if (window.location.pathname.includes("showRequest.html")) {
+    console.log("Show Request page detected");
+
+    onAuthStateChanged(auth, async (user) => {
+        if (!user) {
+            alert("⚠️ You must be logged in to view this request.");
+            window.location.href = "login.html";
+            return;
+        }
+
+        // Get request ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const requestId = urlParams.get('id');
+
+        if (!requestId) {
+            alert("⚠️ No request ID provided.");
+            window.location.href = "dashboard.html";
+            return;
+        }
+
+        try {
+            // Fetch request details
+            const requestDoc = await getDoc(doc(db, "bloodRequests", requestId));
+            
+            if (!requestDoc.exists()) {
+                alert("⚠️ Request not found.");
+                window.location.href = "dashboard.html";
+                return;
+            }
+
+            const requestData = requestDoc.data();
+            
+            // Fetch current user data
+            const userDoc = await getDoc(doc(db, "users", user.uid));
+            const userData = userDoc.data();
+
+            // Calculate distance
+            let distance = 0;
+            if (userData.coordinates && requestData.coordinates) {
+                distance = calculateDistance(
+                    userData.coordinates.lat,
+                    userData.coordinates.lng,
+                    requestData.coordinates.lat,
+                    requestData.coordinates.lng
+                );
+            }
+
+            // Update page content
+            const requesterNameEl = document.querySelector('.info h3');
+            const timeEl = document.querySelector('.time');
+            const priorityEl = document.querySelector('.priority');
+            const bloodGroupEl = document.querySelector('.detail-item strong');
+            const distanceEl = document.querySelectorAll('.detail-item')[1].querySelector('strong');
+            const locationEl = document.querySelectorAll('.detail-item')[2].querySelector('strong');
+            const noteEl = document.querySelector('.note');
+
+            if (requesterNameEl) requesterNameEl.textContent = requestData.patientName || "Anonymous Patient";
+            if (timeEl) timeEl.textContent = getTimeAgo(requestData.createdAt);
+            
+            if (priorityEl) {
+                const priorityText = (requestData.priority || 'medium').charAt(0).toUpperCase() + (requestData.priority || 'medium').slice(1);
+                priorityEl.textContent = `${priorityText} Priority`;
+                priorityEl.className = `priority ${requestData.priority || 'medium'}`;
+            }
+            
+            if (bloodGroupEl) bloodGroupEl.textContent = requestData.bloodGroup;
+            if (distanceEl) distanceEl.textContent = `${distance.toFixed(1)} km`;
+            if (locationEl) {
+                locationEl.innerHTML = `${requestData.hospital}<br><small>${requestData.locationText}</small>`;
+            }
+            if (noteEl) noteEl.textContent = requestData.additionalInfo || "No additional information provided.";
+
+            // Handle Accept button - NOW SAVES TO DATABASE
+            const acceptBtn = document.querySelector('.accept');
+            if (acceptBtn) {
+                acceptBtn.addEventListener('click', async () => {
+                    if (confirm('Are you sure you want to accept this blood donation request?')) {
+                        acceptBtn.textContent = 'Processing...';
+                        acceptBtn.disabled = true;
+
+                        try {
+                            // Create an accepted donation record
+                            await addDoc(collection(db, "acceptedDonations"), {
+                                requestId: requestId,
+                                donorId: user.uid,
+                                donorEmail: user.email,
+                                requestedBy: requestData.requestedBy,
+                                bloodGroup: requestData.bloodGroup,
+                                status: "accepted",
+                                acceptedAt: new Date(),
+                                hospital: requestData.hospital
+                            });
+
+                            acceptBtn.textContent = '✓ Accepted!';
+                            acceptBtn.style.background = '#28a745';
+                            
+                            // Show contact information
+                            alert(`🎉 Thank you for accepting!\n\nPlease contact the requester:\n\nPhone: ${requestData.requestedByPhone || 'Not provided'}\nEmail: ${requestData.requestedByEmail}\n\nHospital: ${requestData.hospital}\n\nThey will be notified of your acceptance.`);
+                            
+                            setTimeout(() => {
+                                window.location.href = 'dashboard.html';
+                            }, 2000);
+
+                        } catch (error) {
+                            console.error("Error accepting request:", error);
+                            alert("❌ Failed to accept request. Please try again.");
+                            acceptBtn.textContent = 'Accept Request';
+                            acceptBtn.disabled = false;
+                        }
+                    }
+                });
+            }
+
+            // Handle Decline button
+            const declineBtn = document.querySelector('.decline');
+            if (declineBtn) {
+                declineBtn.addEventListener('click', () => {
+                    if (confirm('Are you sure you want to decline this request?')) {
+                        window.location.href = 'dashboard.html';
+                    }
+                });
+            }
+
+        } catch (error) {
+            console.error("Error loading request:", error);
+            alert("❌ Failed to load request details.");
+            window.location.href = "dashboard.html";
+        }
+    });
+}
+
+// ------------------------------------------------------------------------------------------------------
 // 🩸 DASHBOARD HANDLING (Dynamic Data + Notifications)
 // ------------------------------------------------------------------------------------------------------
 
@@ -538,7 +849,10 @@ if (window.location.pathname.includes("dashboard.html")) {
                     }
 
                     // Load blood requests (will replace hardcoded ones)
-                    await loadBloodRequests(userData.bloodGroup, userData.coordinates);
+                    await loadBloodRequests(userData.bloodGroup, userData.coordinates, user.uid);
+
+                    // Load user's own requests
+                    await loadUserRequests(user.uid);
 
                     // Mark dashboard as loaded
                     window.dashboardDataLoaded = true;
@@ -581,8 +895,125 @@ if (window.location.pathname.includes("dashboard.html")) {
         }
     }
 
+    // Function to load user's own blood requests
+    async function loadUserRequests(userId) {
+        const userRequestsSection = document.getElementById('userRequestsSection');
+        if (!userRequestsSection) return;
+
+        try {
+            // Query user's requests
+            const requestsQuery = query(
+                collection(db, "bloodRequests"),
+                where("requestedBy", "==", userId),
+                where("status", "==", "active")
+            );
+
+            const querySnapshot = await getDocs(requestsQuery);
+            console.log("User's requests found:", querySnapshot.size);
+
+            if (querySnapshot.empty) {
+                userRequestsSection.innerHTML = `
+                    <h2>My Blood Requests</h2>
+                    <div style="padding: 40px 20px; text-align: center; background: white; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-top: 20px;">
+                        <p style="color: #666; font-size: 15px; margin: 0;">You haven't submitted any blood requests yet.</p>
+                        <a href="request.html" style="display: inline-block; margin-top: 16px; padding: 10px 24px; background: #e63946; color: white; text-decoration: none; border-radius: 8px; font-weight: 600;">Submit a Request</a>
+                    </div>
+                `;
+                return;
+            }
+
+            let requestsHTML = '<h2>My Blood Requests</h2>';
+
+            querySnapshot.forEach((docSnap) => {
+                const request = docSnap.data();
+                const requestId = docSnap.id;
+                const timeAgo = getTimeAgo(request.createdAt);
+                const priorityClass = (request.priority || 'medium').toLowerCase();
+                const priorityText = (request.priority || 'Medium').charAt(0).toUpperCase() + (request.priority || 'Medium').slice(1).toLowerCase();
+
+                requestsHTML += `
+                    <div class="request-card" style="border-left: 4px solid #2196F3;">
+                        <div class="request-header">
+                            <div class="requester-info">
+                                <span class="requester-name">Patient: ${request.patientName || 'Anonymous'}</span>
+                                <span class="priority-badge ${priorityClass}">${priorityText} Priority</span>
+                            </div>
+                        </div>
+                        <div class="request-details">
+                            <div class="detail-row blood">
+                                Blood Group: <span class="blood-type">${request.bloodGroup || 'Not specified'}</span>
+                            </div>
+                            <div class="detail-row location">
+                                ${request.hospital || 'Hospital'} • ${request.locationText || 'Location not specified'}
+                            </div>
+                            <div class="detail-row time">
+                                Submitted ${timeAgo}
+                            </div>
+                        </div>
+                        <div class="request-actions">
+                            <button class="btn-accept" onclick="window.showDonors('${requestId}')">Show Donors</button>
+                            <button class="btn-decline" onclick="window.cancelRequest('${requestId}')">Cancel Request</button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            userRequestsSection.innerHTML = requestsHTML;
+
+        } catch (error) {
+            console.error("Error loading user requests:", error);
+            userRequestsSection.innerHTML = `
+                <h2>My Blood Requests</h2>
+                <div style="padding: 40px 20px; text-align: center; background: white; border-radius: 16px;">
+                    <p style="color: #e63946;">Error loading your requests. Please refresh the page.</p>
+                </div>
+            `;
+        }
+    }
+
+    // Global functions for user request actions
+    window.showDonors = function(requestId) {
+        // Redirect to showDonors.html with the request ID
+        window.location.href = `showDonors.html?id=${requestId}`;
+    };
+
+    window.cancelRequest = async function(requestId) {
+        if (!confirm('Are you sure you want to cancel this blood request? This action cannot be undone.')) {
+            return;
+        }
+
+        try {
+            // Update request status to cancelled
+            await updateDoc(doc(db, "bloodRequests", requestId), {
+                status: "cancelled",
+                cancelledAt: new Date()
+            });
+
+            alert("✅ Request cancelled successfully.");
+            
+            // Reload the page to refresh the requests
+            window.location.reload();
+
+        } catch (error) {
+            console.error("Error cancelling request:", error);
+            alert("❌ Failed to cancel request. Please try again.");
+        }
+    };
+
+    // Helper function to get compatible donor types
+    function getCompatibleDonorTypes(recipientBloodType) {
+        const donorTypes = [];
+        for (const [donorType, canDonateTo] of Object.entries(BLOOD_COMPATIBILITY)) {
+            if (canDonateTo.includes(recipientBloodType)) {
+                donorTypes.push(donorType);
+            }
+        }
+        return donorTypes;
+    }
+
     // Function to load blood requests - ONLY SHOW REQUESTS WITHIN 5KM AND COMPATIBLE BLOOD TYPES
-    async function loadBloodRequests(userBloodGroup, userCoordinates) {
+    // EXCLUDE USER'S OWN REQUESTS
+    async function loadBloodRequests(userBloodGroup, userCoordinates, currentUserId) {
         const requestsContainer = document.querySelector('#requestsSection');
         if (!requestsContainer) return;
 
@@ -604,7 +1035,7 @@ if (window.location.pathname.includes("dashboard.html")) {
                 return;
             }
 
-            // Filter requests within 5km AND compatible blood types
+            // Filter requests within 5km AND compatible blood types AND not user's own requests
             const compatibleRequests = [];
             
             querySnapshot.forEach((docSnap) => {
@@ -612,6 +1043,12 @@ if (window.location.pathname.includes("dashboard.html")) {
                 const requestId = docSnap.id;
 
                 console.log("Processing request:", requestId, "Blood type:", request.bloodGroup);
+
+                // EXCLUDE USER'S OWN REQUESTS
+                if (request.requestedBy === currentUserId) {
+                    console.log(`Skipping - This is user's own request`);
+                    return;
+                }
 
                 // Check blood type compatibility first
                 if (!canDonate(userBloodGroup, request.bloodGroup)) {
@@ -859,7 +1296,7 @@ if (window.location.pathname.includes("dashboard.html")) {
         });
     }
 
-    // � Update Notifications Toggle (with permission + token)
+    // 🔔 Update Notifications Toggle (with permission + token)
     if (enableNotificationsToggle) {
         enableNotificationsToggle.addEventListener("change", async function () {
             if (!currentUserRef) return;
