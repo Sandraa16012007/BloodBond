@@ -51,6 +51,29 @@ const db = getFirestore(app);
 
 let userLocation = { lat: null, lng: null };
 
+// Blood type compatibility chart - who can donate to whom
+const BLOOD_COMPATIBILITY = {
+    'O-': ['O-', 'O+', 'A-', 'A+', 'B-', 'B+', 'AB-', 'AB+'],  // Universal donor
+    'O+': ['O+', 'A+', 'B+', 'AB+'],
+    'A-': ['A-', 'A+', 'AB-', 'AB+'],
+    'A+': ['A+', 'AB+'],
+    'B-': ['B-', 'B+', 'AB-', 'AB+'],
+    'B+': ['B+', 'AB+'],
+    'AB-': ['AB-', 'AB+'],
+    'AB+': ['AB+']  // Universal recipient (can only donate to AB+)
+};
+
+/**
+ * Check if a donor can donate to a recipient
+ * @param {string} donorBloodType - The blood type of the donor
+ * @param {string} recipientBloodType - The blood type of the recipient
+ * @returns {boolean} - True if donor can donate to recipient
+ */
+function canDonate(donorBloodType, recipientBloodType) {
+    if (!donorBloodType || !recipientBloodType) return false;
+    return BLOOD_COMPATIBILITY[donorBloodType]?.includes(recipientBloodType) || false;
+}
+
 // ------------------------------------------------------------------------------------------------------
 // 🩸 LOCATION HANDLING - UNIVERSAL FUNCTION
 // ------------------------------------------------------------------------------------------------------
@@ -558,14 +581,14 @@ if (window.location.pathname.includes("dashboard.html")) {
         }
     }
 
-    // Function to load blood requests - REPLACES ALL HARDCODED CONTENT
+    // Function to load blood requests - ONLY SHOW REQUESTS WITHIN 5KM AND COMPATIBLE BLOOD TYPES
     async function loadBloodRequests(userBloodGroup, userCoordinates) {
         const requestsContainer = document.querySelector('#requestsSection');
         if (!requestsContainer) return;
 
         try {
             // COMPLETELY CLEAR the requests section first
-            requestsContainer.innerHTML = '<h2>Blood Requests</h2>';
+            requestsContainer.innerHTML = '<h2>Blood Requests Nearby</h2>';
 
             // Query blood requests collection
             const requestsQuery = query(
@@ -574,69 +597,116 @@ if (window.location.pathname.includes("dashboard.html")) {
             );
 
             const querySnapshot = await getDocs(requestsQuery);
+            console.log("Total active requests found:", querySnapshot.size);
 
             if (querySnapshot.empty) {
-                // No requests found - show styled empty state
-                requestsContainer.innerHTML = `
-                    <h2>Blood Requests</h2>
-                    <div style="padding: 60px 20px; text-align: center; background: white; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-top: 20px;">
-                        <div style="font-size: 64px; margin-bottom: 20px; opacity: 0.7;">🩸</div>
-                        <h3 style="color: #333; font-size: 20px; margin-bottom: 12px; font-weight: 600;">No Active Blood Requests</h3>
-                        <p style="color: #666; font-size: 15px; margin: 0; line-height: 1.6;">There are currently no blood donation requests in your area.</p>
-                        <p style="color: #999; font-size: 14px; margin-top: 8px;">We'll notify you immediately when someone needs ${userBloodGroup || 'your blood type'}.</p>
-                    </div>
-                `;
+                showEmptyState(requestsContainer, userBloodGroup);
                 return;
             }
 
-            // Build requests HTML
-            let requestsHTML = '<h2>Blood Requests</h2>';
-
+            // Filter requests within 5km AND compatible blood types
+            const compatibleRequests = [];
+            
             querySnapshot.forEach((docSnap) => {
                 const request = docSnap.data();
                 const requestId = docSnap.id;
 
+                console.log("Processing request:", requestId, "Blood type:", request.bloodGroup);
+
+                // Check blood type compatibility first
+                if (!canDonate(userBloodGroup, request.bloodGroup)) {
+                    console.log(`Skipping - User (${userBloodGroup}) cannot donate to recipient (${request.bloodGroup})`);
+                    return;
+                }
+
                 // Calculate distance if coordinates are available
-                let distance = "Location not specified";
-                if (userCoordinates && request.coordinates) {
-                    const dist = calculateDistance(
+                if (userCoordinates && userCoordinates.lat && userCoordinates.lng && 
+                    request.coordinates && request.coordinates.lat && request.coordinates.lng) {
+                    
+                    const distance = calculateDistance(
                         userCoordinates.lat,
                         userCoordinates.lng,
                         request.coordinates.lat,
                         request.coordinates.lng
                     );
-                    distance = `${dist.toFixed(1)} km away`;
+
+                    console.log(`Request ${requestId} (${request.bloodGroup}) is ${distance.toFixed(2)} km away`);
+
+                    // Only include requests within 5km radius and compatible blood type
+                    if (distance <= 5) {
+                        compatibleRequests.push({
+                            id: requestId,
+                            data: request,
+                            distance: distance
+                        });
+                        console.log(`✅ Added request ${requestId} - Compatible and within 5km`);
+                    } else {
+                        console.log(`❌ Rejected - Too far (${distance.toFixed(2)} km)`);
+                    }
+                } else {
+                    console.log("Missing coordinates for request:", requestId);
                 }
+            });
 
-                // Calculate time ago
-                const timeAgo = getTimeAgo(request.createdAt);
+            console.log(`Compatible requests (within 5km): ${compatibleRequests.length} out of ${querySnapshot.size} total`);
 
-                // Get priority class
-                const priorityClass = (request.priority || 'medium').toLowerCase();
-                const priorityText = (request.priority || 'Medium').charAt(0).toUpperCase() + (request.priority || 'Medium').slice(1).toLowerCase();
+            // If no compatible requests found
+            if (compatibleRequests.length === 0) {
+                console.log("No compatible requests found");
+                showEmptyState(requestsContainer, userBloodGroup, true);
+                return;
+            }
+
+            // Sort by distance (closest first), then by time (newest first)
+            compatibleRequests.sort((a, b) => {
+                // First sort by distance
+                if (a.distance !== b.distance) {
+                    return a.distance - b.distance;
+                }
+                // If same distance, sort by time
+                const timeA = a.data.createdAt?.toDate ? a.data.createdAt.toDate().getTime() : 0;
+                const timeB = b.data.createdAt?.toDate ? b.data.createdAt.toDate().getTime() : 0;
+                return timeB - timeA;
+            });
+
+            // Build requests HTML
+            let requestsHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2 style="margin: 0;">Compatible Blood Requests Nearby</h2>
+                    <span style="background: #e8f5e9; color: #2e7d32; padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: 600;">
+                        ✓ ${compatibleRequests.length} Compatible Match${compatibleRequests.length !== 1 ? 'es' : ''}
+                    </span>
+                </div>
+            `;
+
+            compatibleRequests.forEach(({ id, data, distance }) => {
+                const timeAgo = getTimeAgo(data.createdAt);
+                const priorityClass = (data.priority || 'medium').toLowerCase();
+                const priorityText = (data.priority || 'Medium').charAt(0).toUpperCase() + (data.priority || 'Medium').slice(1).toLowerCase();
 
                 requestsHTML += `
-                    <div class="request-card">
+                    <div class="request-card" style="border-left: 4px solid #4CAF50;">
                         <div class="request-header">
                             <div class="requester-info">
-                                <span class="requester-name">${request.patientName || 'Anonymous Patient'}</span>
+                                <span class="requester-name">${data.patientName || 'Anonymous Patient'}</span>
                                 <span class="priority-badge ${priorityClass}">${priorityText} Priority</span>
                             </div>
                         </div>
                         <div class="request-details">
                             <div class="detail-row blood">
-                                Blood Group: <span class="blood-type">${request.bloodGroup || 'Not specified'}</span>
+                                Blood Group: <span class="blood-type">${data.bloodGroup || 'Not specified'}</span>
+                                <span style="background: #e8f5e9; color: #2e7d32; padding: 2px 8px; border-radius: 12px; font-size: 12px; margin-left: 8px; font-weight: 600;">✓ You can donate</span>
                             </div>
                             <div class="detail-row location">
-                                ${request.hospital || 'Hospital'} • ${distance}
+                                ${data.hospital || 'Hospital'} • ${distance.toFixed(1)} km away
                             </div>
                             <div class="detail-row time">
                                 ${timeAgo}
                             </div>
                         </div>
                         <div class="request-actions">
-                            <a href="showRequest.html?id=${requestId}" class="btn-accept">Accept Request</a>
-                            <button class="btn-decline" data-request-id="${requestId}">Decline</button>
+                            <a href="showRequest.html?id=${id}" class="btn-accept">Accept Request</a>
+                            <button class="btn-decline" data-request-id="${id}">Decline</button>
                         </div>
                     </div>
                 `;
@@ -656,18 +726,33 @@ if (window.location.pathname.includes("dashboard.html")) {
 
         } catch (error) {
             console.error("Error loading blood requests:", error);
-
-            // Show empty state on error (likely collection doesn't exist)
-            requestsContainer.innerHTML = `
-                <h2>Blood Requests</h2>
-                <div style="padding: 60px 20px; text-align: center; background: white; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-top: 20px;">
-                    <div style="font-size: 64px; margin-bottom: 20px; opacity: 0.7;">🩸</div>
-                    <h3 style="color: #333; font-size: 20px; margin-bottom: 12px; font-weight: 600;">No Active Blood Requests</h3>
-                    <p style="color: #666; font-size: 15px; margin: 0; line-height: 1.6;">There are currently no blood donation requests in your area.</p>
-                    <p style="color: #999; font-size: 14px; margin-top: 8px;">We'll notify you immediately when someone needs ${userBloodGroup || 'your blood type'}.</p>
-                </div>
-            `;
+            showEmptyState(requestsContainer, userBloodGroup);
         }
+    }
+
+    // Helper function to show empty state
+    function showEmptyState(container, bloodGroup, hasIncompatible = false) {
+        const compatibleTypes = BLOOD_COMPATIBILITY[bloodGroup] || [];
+        const typesText = compatibleTypes.length > 0 ? compatibleTypes.join(', ') : 'compatible blood types';
+        
+        let message = `There are currently no blood donation requests within 5km that match your blood type (${bloodGroup}).`;
+        let submessage = `You can donate to: <strong>${typesText}</strong>`;
+        
+        if (hasIncompatible) {
+            message = `No compatible blood requests found nearby.`;
+            submessage = `We found some requests, but they need blood types you cannot donate to. You (${bloodGroup}) can donate to: <strong>${typesText}</strong>`;
+        }
+
+        container.innerHTML = `
+            <h2>Blood Requests</h2>
+            <div style="padding: 60px 20px; text-align: center; background: white; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-top: 20px;">
+                <div style="font-size: 64px; margin-bottom: 20px; opacity: 0.7;">🩸</div>
+                <h3 style="color: #333; font-size: 20px; margin-bottom: 12px; font-weight: 600;">No Compatible Requests Nearby</h3>
+                <p style="color: #666; font-size: 15px; margin: 0 0 12px 0; line-height: 1.6;">${message}</p>
+                <p style="color: #999; font-size: 14px; margin: 0; line-height: 1.6;">${submessage}</p>
+                <p style="color: #999; font-size: 13px; margin-top: 16px; padding-top: 16px; border-top: 1px solid #eee;">We'll notify you immediately when someone nearby needs a compatible blood type.</p>
+            </div>
+        `;
     }
 
     // Helper function to calculate distance between two coordinates
@@ -718,7 +803,63 @@ if (window.location.pathname.includes("dashboard.html")) {
         });
     }
 
-    // 🔔 Update Notifications Toggle (with permission + token)
+    // 📍 Update Location Button
+    const updateLocationBtn = document.getElementById("updateLocationBtn");
+    if (updateLocationBtn) {
+        updateLocationBtn.addEventListener("click", () => {
+            if (!currentUserRef) {
+                alert("User data not loaded yet. Please wait a moment.");
+                return;
+            }
+
+            if (!navigator.geolocation) {
+                alert("❌ Geolocation is not supported by your browser.");
+                return;
+            }
+
+            const originalText = updateLocationBtn.textContent;
+            updateLocationBtn.textContent = "Fetching...";
+            updateLocationBtn.disabled = true;
+
+            navigator.geolocation.getCurrentPosition(
+                async (position) => {
+                    const newCoords = {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude
+                    };
+                    const newLocationText = `${newCoords.lat.toFixed(4)}, ${newCoords.lng.toFixed(4)}`;
+
+                    try {
+                        await updateDoc(currentUserRef, {
+                            coordinates: newCoords,
+                            locationText: newLocationText
+                        });
+
+                        console.log("✅ Location updated successfully:", newCoords);
+                        updateLocationBtn.textContent = "✅ Updated!";
+                        setTimeout(() => {
+                            updateLocationBtn.textContent = originalText;
+                            updateLocationBtn.disabled = false;
+                        }, 2500);
+
+                    } catch (error) {
+                        console.error("Error updating location in Firestore:", error);
+                        alert("❌ Failed to save new location.");
+                        updateLocationBtn.textContent = originalText;
+                        updateLocationBtn.disabled = false;
+                    }
+                },
+                (error) => {
+                    console.error("Geolocation error:", error);
+                    alert("⚠️ Unable to fetch location. Please ensure location services are enabled.");
+                    updateLocationBtn.textContent = originalText;
+                    updateLocationBtn.disabled = false;
+                }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+            );
+        });
+    }
+
+    // � Update Notifications Toggle (with permission + token)
     if (enableNotificationsToggle) {
         enableNotificationsToggle.addEventListener("change", async function () {
             if (!currentUserRef) return;
