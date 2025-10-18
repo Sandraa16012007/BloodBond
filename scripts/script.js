@@ -929,7 +929,6 @@ if (window.location.pathname.includes("showRequest.html")) {
             }
 
             // Handle Decline button
-            const declineBtn = document.querySelector('.decline');
             if (declineBtn) {
                 declineBtn.addEventListener('click', () => {
                     if (confirm('Are you sure you want to decline this request?')) {
