@@ -494,20 +494,10 @@ if (window.location.pathname.includes("showDonors.html")) {
             return;
         }
 
-<<<<<<< HEAD
-        console.log("User authenticated:", user.email);
-
-=======
->>>>>>> d2b9672bbd37b1bce72a0c227205ee9490302ac3
         // Get request ID from URL
         const urlParams = new URLSearchParams(window.location.search);
         const requestId = urlParams.get('id');
 
-<<<<<<< HEAD
-        console.log("Request ID from URL:", requestId);
-
-=======
->>>>>>> d2b9672bbd37b1bce72a0c227205ee9490302ac3
         if (!requestId) {
             alert("⚠️ No request ID provided.");
             window.location.href = "dashboard.html";
@@ -515,11 +505,6 @@ if (window.location.pathname.includes("showDonors.html")) {
         }
 
         try {
-<<<<<<< HEAD
-            console.log("Fetching request details for ID:", requestId);
-            
-=======
->>>>>>> d2b9672bbd37b1bce72a0c227205ee9490302ac3
             // Fetch request details
             const requestDoc = await getDoc(doc(db, "bloodRequests", requestId));
             
@@ -530,10 +515,6 @@ if (window.location.pathname.includes("showDonors.html")) {
             }
 
             const requestData = requestDoc.data();
-<<<<<<< HEAD
-            console.log("Request data:", requestData);
-=======
->>>>>>> d2b9672bbd37b1bce72a0c227205ee9490302ac3
 
             // Check if the logged-in user is the owner of this request
             if (requestData.requestedBy !== user.uid) {
@@ -542,11 +523,6 @@ if (window.location.pathname.includes("showDonors.html")) {
                 return;
             }
 
-<<<<<<< HEAD
-            console.log("User is owner of request. Fetching accepted donors...");
-
-=======
->>>>>>> d2b9672bbd37b1bce72a0c227205ee9490302ac3
             // Fetch accepted donors for this request
             const acceptedDonorsQuery = query(
                 collection(db, "acceptedDonations"),
@@ -555,23 +531,6 @@ if (window.location.pathname.includes("showDonors.html")) {
             );
 
             const donorsSnapshot = await getDocs(acceptedDonorsQuery);
-<<<<<<< HEAD
-            console.log("Number of donors who accepted:", donorsSnapshot.size);
-            
-            const donorsSection = document.getElementById('donorsSection');
-
-            if (!donorsSection) {
-                console.error("Donors section element not found!");
-                return;
-            }
-
-            if (donorsSnapshot.empty) {
-                console.log("No donors have accepted this request yet");
-                // No donors have accepted yet
-                donorsSection.innerHTML = `
-                    <h2>Donors Who Accepted Your Request</h2>
-                    <div style="padding: 60px 20px; text-align: center; background: white; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-top: 20px;">
-=======
             const donorsSection = document.getElementById('donorsSection');
 
             if (!donorsSection) return;
@@ -581,7 +540,6 @@ if (window.location.pathname.includes("showDonors.html")) {
                 donorsSection.innerHTML = `
                     <h2>Donors Who Accepted Your Request</h2>
                     <div style="padding: 60px 20px; text-align: center; background: white; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-top: 20px; margin-bottom: 40px;">
->>>>>>> d2b9672bbd37b1bce72a0c227205ee9490302ac3
                         <div style="font-size: 64px; margin-bottom: 20px; opacity: 0.7;">⏳</div>
                         <h3 style="color: #333; font-size: 20px; margin-bottom: 12px; font-weight: 600;">No Donors Yet</h3>
                         <p style="color: #666; font-size: 15px; margin: 0 0 12px 0; line-height: 1.6;">
@@ -597,11 +555,6 @@ if (window.location.pathname.includes("showDonors.html")) {
                 return;
             }
 
-<<<<<<< HEAD
-            console.log("Building donor cards...");
-
-=======
->>>>>>> d2b9672bbd37b1bce72a0c227205ee9490302ac3
             // Build donors HTML
             let donorsHTML = `
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
@@ -616,10 +569,6 @@ if (window.location.pathname.includes("showDonors.html")) {
             const donorPromises = [];
             donorsSnapshot.forEach((docSnap) => {
                 const acceptedData = docSnap.data();
-<<<<<<< HEAD
-                console.log("Accepted donation data:", acceptedData);
-=======
->>>>>>> d2b9672bbd37b1bce72a0c227205ee9490302ac3
                 donorPromises.push(
                     getDoc(doc(db, "users", acceptedData.donorId)).then(donorDoc => ({
                         acceptedData,
@@ -629,23 +578,10 @@ if (window.location.pathname.includes("showDonors.html")) {
             });
 
             const donors = await Promise.all(donorPromises);
-<<<<<<< HEAD
-            console.log("Donor details fetched:", donors.length);
-
-            // Calculate distances and build cards
-            for (const { acceptedData, donorData } of donors) {
-                if (!donorData) {
-                    console.warn("Donor data not found for donor ID:", acceptedData.donorId);
-                    continue;
-                }
-
-                console.log("Processing donor:", donorData.fullName);
-=======
 
             // Calculate distances and build cards
             for (const { acceptedData, donorData } of donors) {
                 if (!donorData) continue;
->>>>>>> d2b9672bbd37b1bce72a0c227205ee9490302ac3
 
                 let distance = null;
                 if (donorData.coordinates && requestData.coordinates) {
@@ -655,10 +591,6 @@ if (window.location.pathname.includes("showDonors.html")) {
                         requestData.coordinates.lat,
                         requestData.coordinates.lng
                     );
-<<<<<<< HEAD
-                    console.log("Distance calculated:", distance, "km");
-=======
->>>>>>> d2b9672bbd37b1bce72a0c227205ee9490302ac3
                 }
 
                 const timeAgo = getTimeAgo(acceptedData.acceptedAt);
@@ -713,20 +645,10 @@ if (window.location.pathname.includes("showDonors.html")) {
                 `;
             }
 
-<<<<<<< HEAD
-            console.log("Updating donors section with HTML");
-            donorsSection.innerHTML = donorsHTML;
-            console.log("Donors page loaded successfully!");
-
-        } catch (error) {
-            console.error("Error loading donors:", error);
-            console.error("Error stack:", error.stack);
-=======
             donorsSection.innerHTML = donorsHTML;
 
         } catch (error) {
             console.error("Error loading donors:", error);
->>>>>>> d2b9672bbd37b1bce72a0c227205ee9490302ac3
             alert("❌ Failed to load donors. Please try again.");
             window.location.href = "dashboard.html";
         }
@@ -742,86 +664,36 @@ if (window.location.pathname.includes("showRequest.html")) {
 
     onAuthStateChanged(auth, async (user) => {
         if (!user) {
-<<<<<<< HEAD
-            console.error("User not authenticated");
-=======
->>>>>>> d2b9672bbd37b1bce72a0c227205ee9490302ac3
             alert("⚠️ You must be logged in to view this request.");
             window.location.href = "login.html";
             return;
         }
 
-<<<<<<< HEAD
-        console.log("User authenticated:", user.email);
-
-=======
->>>>>>> d2b9672bbd37b1bce72a0c227205ee9490302ac3
         // Get request ID from URL
         const urlParams = new URLSearchParams(window.location.search);
         const requestId = urlParams.get('id');
 
-<<<<<<< HEAD
-        console.log("Request ID from URL:", requestId);
-
         if (!requestId) {
-            console.error("No request ID in URL");
-=======
-        if (!requestId) {
->>>>>>> d2b9672bbd37b1bce72a0c227205ee9490302ac3
             alert("⚠️ No request ID provided.");
             window.location.href = "dashboard.html";
             return;
         }
 
         try {
-<<<<<<< HEAD
-            console.log("Fetching request document for ID:", requestId);
-            
-            // Fetch request details
-            const requestDoc = await getDoc(doc(db, "bloodRequests", requestId));
-            
-            console.log("Request document exists:", requestDoc.exists());
-            
-            if (!requestDoc.exists()) {
-                console.error("Request document not found in Firebase");
-                alert("⚠️ Request not found. It may have been cancelled or deleted.");
-=======
             // Fetch request details
             const requestDoc = await getDoc(doc(db, "bloodRequests", requestId));
             
             if (!requestDoc.exists()) {
                 alert("⚠️ Request not found.");
->>>>>>> d2b9672bbd37b1bce72a0c227205ee9490302ac3
                 window.location.href = "dashboard.html";
                 return;
             }
 
-<<<<<<< HEAD
-            console.log("Request data:", requestDoc.data());
-
-            const requestData = requestDoc.data();
-            
-            console.log("Fetching user document for user:", user.uid);
-            
-            // Fetch current user data
-            const userDoc = await getDoc(doc(db, "users", user.uid));
-            
-            if (!userDoc.exists()) {
-                console.error("User document not found");
-                alert("⚠️ User data not found. Please log in again.");
-                window.location.href = "login.html";
-                return;
-            }
-            
-            const userData = userDoc.data();
-            console.log("User data:", userData);
-=======
             const requestData = requestDoc.data();
             
             // Fetch current user data
             const userDoc = await getDoc(doc(db, "users", user.uid));
             const userData = userDoc.data();
->>>>>>> d2b9672bbd37b1bce72a0c227205ee9490302ac3
 
             // Calculate distance
             let distance = 0;
@@ -840,11 +712,7 @@ if (window.location.pathname.includes("showRequest.html")) {
             const priorityEl = document.querySelector('.priority');
             const bloodGroupEl = document.querySelector('.detail-item strong');
             const distanceEl = document.querySelectorAll('.detail-item')[1].querySelector('strong');
-<<<<<<< HEAD
-            const locationEl = document.querySelectorAll('.detail-item')[2];
-=======
             const locationEl = document.querySelectorAll('.detail-item')[2].querySelector('strong');
->>>>>>> d2b9672bbd37b1bce72a0c227205ee9490302ac3
             const noteEl = document.querySelector('.note');
 
             if (requesterNameEl) requesterNameEl.textContent = requestData.patientName || "Anonymous Patient";
@@ -859,64 +727,24 @@ if (window.location.pathname.includes("showRequest.html")) {
             if (bloodGroupEl) bloodGroupEl.textContent = requestData.bloodGroup;
             if (distanceEl) distanceEl.textContent = `${distance.toFixed(1)} km`;
             if (locationEl) {
-<<<<<<< HEAD
-                locationEl.innerHTML = `
-                    <i class="fas fa-hospital"></i>
-                    <span>Location: <strong>${requestData.hospital}</strong><br>
-                    <small>${requestData.locationText || 'Coordinates: ' + requestData.coordinates.lat.toFixed(4) + ', ' + requestData.coordinates.lng.toFixed(4)}</small></span>
-                `;
-=======
                 locationEl.innerHTML = `${requestData.hospital}<br><small>${requestData.locationText}</small>`;
->>>>>>> d2b9672bbd37b1bce72a0c227205ee9490302ac3
             }
             if (noteEl) noteEl.textContent = requestData.additionalInfo || "No additional information provided.";
 
             // Handle Accept button - NOW SAVES TO DATABASE
             const acceptBtn = document.querySelector('.accept');
-<<<<<<< HEAD
-            const declineBtn = document.querySelector('.decline');
-            
-=======
->>>>>>> d2b9672bbd37b1bce72a0c227205ee9490302ac3
             if (acceptBtn) {
                 acceptBtn.addEventListener('click', async () => {
                     if (confirm('Are you sure you want to accept this blood donation request?')) {
                         acceptBtn.textContent = 'Processing...';
                         acceptBtn.disabled = true;
-<<<<<<< HEAD
-                        if (declineBtn) declineBtn.disabled = true;
 
                         try {
-                            // Check if user has already accepted this request
-                            const existingAcceptanceQuery = query(
-                                collection(db, "acceptedDonations"),
-                                where("requestId", "==", requestId),
-                                where("donorId", "==", user.uid)
-                            );
-                            
-                            const existingAcceptance = await getDocs(existingAcceptanceQuery);
-                            
-                            if (!existingAcceptance.empty) {
-                                alert("You have already accepted this request!");
-                                acceptBtn.textContent = 'Already Accepted';
-                                return;
-                            }
-
-=======
-
-                        try {
->>>>>>> d2b9672bbd37b1bce72a0c227205ee9490302ac3
                             // Create an accepted donation record
                             await addDoc(collection(db, "acceptedDonations"), {
                                 requestId: requestId,
                                 donorId: user.uid,
                                 donorEmail: user.email,
-<<<<<<< HEAD
-                                donorName: userData.fullName || 'Anonymous',
-                                donorPhone: userData.phone || '',
-                                donorBloodGroup: userData.bloodGroup,
-=======
->>>>>>> d2b9672bbd37b1bce72a0c227205ee9490302ac3
                                 requestedBy: requestData.requestedBy,
                                 bloodGroup: requestData.bloodGroup,
                                 status: "accepted",
@@ -924,97 +752,6 @@ if (window.location.pathname.includes("showRequest.html")) {
                                 hospital: requestData.hospital
                             });
 
-<<<<<<< HEAD
-                            // Update the UI to show success
-                            acceptBtn.textContent = '✓ Request Accepted!';
-                            acceptBtn.style.background = '#28a745';
-                            acceptBtn.style.cursor = 'default';
-                            
-                            // Hide decline button
-                            if (declineBtn) {
-                                declineBtn.style.display = 'none';
-                            }
-                            
-                            // Create a contact information section
-                            const cardFooter = document.querySelector('.card-footer');
-                            if (cardFooter) {
-                                // Add spacing
-                                cardFooter.style.marginTop = '20px';
-                                
-                                // Create notification message
-                                const notificationDiv = document.createElement('div');
-                                notificationDiv.style.cssText = 'background: #e8f5e9; padding: 16px; border-radius: 8px; margin-bottom: 16px; border-left: 4px solid #28a745;';
-                                notificationDiv.innerHTML = `
-                                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-                                        <span style="font-size: 24px;">✅</span>
-                                        <strong style="color: #2e7d32; font-size: 16px;">Request Accepted Successfully!</strong>
-                                    </div>
-                                    <p style="margin: 0; color: #1b5e20; font-size: 14px; line-height: 1.6;">
-                                        We've notified the person who posted this request. You can contact them directly using the information below.
-                                    </p>
-                                `;
-                                
-                                // Create contact info section
-                                const contactDiv = document.createElement('div');
-                                contactDiv.style.cssText = 'background: #f8f8f8; padding: 16px; border-radius: 8px; margin-bottom: 16px;';
-                                contactDiv.innerHTML = `
-                                    <h4 style="margin: 0 0 12px 0; color: #333; font-size: 15px; font-weight: 600;">
-                                        <i class="fas fa-user-circle" style="color: #e63946; margin-right: 8px;"></i>
-                                        Requester Contact Information
-                                    </h4>
-                                    <div style="display: flex; flex-direction: column; gap: 10px; font-size: 14px;">
-                                        <div style="display: flex; align-items: center; gap: 8px;">
-                                            <i class="fas fa-user" style="color: #666; width: 16px;"></i>
-                                            <span style="color: #666;">Name:</span>
-                                            <strong style="color: #333;">${requestData.patientName || 'Not provided'}</strong>
-                                        </div>
-                                        <div style="display: flex; align-items: center; gap: 8px;">
-                                            <i class="fas fa-phone" style="color: #666; width: 16px;"></i>
-                                            <span style="color: #666;">Phone:</span>
-                                            <strong style="color: #333;">${requestData.requestedByPhone || 'Not provided'}</strong>
-                                        </div>
-                                        <div style="display: flex; align-items: center; gap: 8px;">
-                                            <i class="fas fa-envelope" style="color: #666; width: 16px;"></i>
-                                            <span style="color: #666;">Email:</span>
-                                            <strong style="color: #333;">${requestData.requestedByEmail || 'Not provided'}</strong>
-                                        </div>
-                                        <div style="display: flex; align-items: center; gap: 8px;">
-                                            <i class="fas fa-hospital" style="color: #666; width: 16px;"></i>
-                                            <span style="color: #666;">Hospital:</span>
-                                            <strong style="color: #333;">${requestData.hospital}</strong>
-                                        </div>
-                                    </div>
-                                `;
-                                
-                                // Create action buttons
-                                const actionsDiv = document.createElement('div');
-                                actionsDiv.style.cssText = 'display: flex; gap: 10px;';
-                                actionsDiv.innerHTML = `
-                                    <button class="btn contact" onclick="window.location.href='tel:${requestData.requestedByPhone || ''}'" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; background: #e63946; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer;">
-                                        <i class="fas fa-phone"></i> Call Now
-                                    </button>
-                                    <button class="btn message" onclick="window.location.href='mailto:${requestData.requestedByEmail || ''}'" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; background: #fff; border: 1px solid rgba(0,0,0,0.4); color: #333; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer;">
-                                        <i class="fas fa-envelope"></i> Send Email
-                                    </button>
-                                `;
-                                
-                                // Insert everything before the existing buttons
-                                const cardBody = document.querySelector('.card-body');
-                                if (cardBody) {
-                                    cardBody.parentNode.insertBefore(notificationDiv, cardFooter);
-                                    cardBody.parentNode.insertBefore(contactDiv, cardFooter);
-                                    cardBody.parentNode.insertBefore(actionsDiv, cardFooter);
-                                }
-                                
-                                // Add back to dashboard button
-                                const backButton = document.createElement('button');
-                                backButton.textContent = 'Back to Dashboard';
-                                backButton.className = 'btn';
-                                backButton.style.cssText = 'flex: 1; background: #e63946; color: white; border: none; margin-top: 12px; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer;';
-                                backButton.onclick = () => window.location.href = 'dashboard.html';
-                                actionsDiv.appendChild(backButton);
-                            }
-=======
                             acceptBtn.textContent = '✓ Accepted!';
                             acceptBtn.style.background = '#28a745';
                             
@@ -1024,27 +761,19 @@ if (window.location.pathname.includes("showRequest.html")) {
                             setTimeout(() => {
                                 window.location.href = 'dashboard.html';
                             }, 2000);
->>>>>>> d2b9672bbd37b1bce72a0c227205ee9490302ac3
 
                         } catch (error) {
                             console.error("Error accepting request:", error);
                             alert("❌ Failed to accept request. Please try again.");
                             acceptBtn.textContent = 'Accept Request';
                             acceptBtn.disabled = false;
-<<<<<<< HEAD
-                            if (declineBtn) declineBtn.disabled = false;
-=======
->>>>>>> d2b9672bbd37b1bce72a0c227205ee9490302ac3
                         }
                     }
                 });
             }
 
             // Handle Decline button
-<<<<<<< HEAD
-=======
             const declineBtn = document.querySelector('.decline');
->>>>>>> d2b9672bbd37b1bce72a0c227205ee9490302ac3
             if (declineBtn) {
                 declineBtn.addEventListener('click', () => {
                     if (confirm('Are you sure you want to decline this request?')) {
@@ -1055,17 +784,8 @@ if (window.location.pathname.includes("showRequest.html")) {
 
         } catch (error) {
             console.error("Error loading request:", error);
-<<<<<<< HEAD
-            console.error("Error details:", error.message, error.code);
-            alert(`❌ Failed to load request details.\n\nError: ${error.message}\n\nPlease check:\n1. Your internet connection\n2. Firebase permissions\n3. The request still exists`);
-            // Don't redirect immediately, let user see the error
-            setTimeout(() => {
-                window.location.href = "dashboard.html";
-            }, 3000);
-=======
             alert("❌ Failed to load request details.");
             window.location.href = "dashboard.html";
->>>>>>> d2b9672bbd37b1bce72a0c227205ee9490302ac3
         }
     });
 }
@@ -1341,11 +1061,6 @@ if (window.location.pathname.includes("dashboard.html")) {
         }
     };
 
-<<<<<<< HEAD
-    // ------------------------------------------------------------------------------------------------------
-    // 🩸 DASHBOARD-SPECIFIC HELPER FUNCTIONS
-    // ------------------------------------------------------------------------------------------------------
-=======
     // Helper function to get compatible donor types
     function getCompatibleDonorTypes(recipientBloodType) {
         const donorTypes = [];
@@ -1356,7 +1071,6 @@ if (window.location.pathname.includes("dashboard.html")) {
         }
         return donorTypes;
     }
->>>>>>> d2b9672bbd37b1bce72a0c227205ee9490302ac3
 
     // Function to load blood requests - ONLY SHOW REQUESTS WITHIN 5KM AND COMPATIBLE BLOOD TYPES
     // EXCLUDE USER'S OWN REQUESTS
