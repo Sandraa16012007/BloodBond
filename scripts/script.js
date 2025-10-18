@@ -39,14 +39,12 @@ import {
 // For later: Firebase Cloud Messaging (optional)
 import {
     getMessaging,
-    getToken,
-    onMessage
+    getToken
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js";
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-
 
 // ------------------------------------------------------------------------------------------------------
 // 🩸 GLOBAL LOCATION STATE
@@ -494,9 +492,13 @@ if (window.location.pathname.includes("showDonors.html")) {
             return;
         }
 
+        console.log("User authenticated:", user.email);
+
         // Get request ID from URL
         const urlParams = new URLSearchParams(window.location.search);
         const requestId = urlParams.get('id');
+
+        console.log("Request ID from URL:", requestId);
 
         if (!requestId) {
             alert("⚠️ No request ID provided.");
@@ -505,6 +507,8 @@ if (window.location.pathname.includes("showDonors.html")) {
         }
 
         try {
+            console.log("Fetching request details for ID:", requestId);
+            
             // Fetch request details
             const requestDoc = await getDoc(doc(db, "bloodRequests", requestId));
             
@@ -515,6 +519,7 @@ if (window.location.pathname.includes("showDonors.html")) {
             }
 
             const requestData = requestDoc.data();
+            console.log("Request data:", requestData);
 
             // Check if the logged-in user is the owner of this request
             if (requestData.requestedBy !== user.uid) {
@@ -522,6 +527,8 @@ if (window.location.pathname.includes("showDonors.html")) {
                 window.location.href = "dashboard.html";
                 return;
             }
+
+            console.log("User is owner of request. Fetching accepted donors...");
 
             // Fetch accepted donors for this request
             const acceptedDonorsQuery = query(
@@ -531,15 +538,21 @@ if (window.location.pathname.includes("showDonors.html")) {
             );
 
             const donorsSnapshot = await getDocs(acceptedDonorsQuery);
+            console.log("Number of donors who accepted:", donorsSnapshot.size);
+            
             const donorsSection = document.getElementById('donorsSection');
 
-            if (!donorsSection) return;
+            if (!donorsSection) {
+                console.error("Donors section element not found!");
+                return;
+            }
 
             if (donorsSnapshot.empty) {
+                console.log("No donors have accepted this request yet");
                 // No donors have accepted yet
                 donorsSection.innerHTML = `
                     <h2>Donors Who Accepted Your Request</h2>
-                    <div style="padding: 60px 20px; text-align: center; background: white; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-top: 20px; margin-bottom: 40px;">
+                    <div style="padding: 60px 20px; text-align: center; background: white; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-top: 20px;">
                         <div style="font-size: 64px; margin-bottom: 20px; opacity: 0.7;">⏳</div>
                         <h3 style="color: #333; font-size: 20px; margin-bottom: 12px; font-weight: 600;">No Donors Yet</h3>
                         <p style="color: #666; font-size: 15px; margin: 0 0 12px 0; line-height: 1.6;">
@@ -555,6 +568,8 @@ if (window.location.pathname.includes("showDonors.html")) {
                 return;
             }
 
+            console.log("Building donor cards...");
+
             // Build donors HTML
             let donorsHTML = `
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
@@ -569,6 +584,7 @@ if (window.location.pathname.includes("showDonors.html")) {
             const donorPromises = [];
             donorsSnapshot.forEach((docSnap) => {
                 const acceptedData = docSnap.data();
+                console.log("Accepted donation data:", acceptedData);
                 donorPromises.push(
                     getDoc(doc(db, "users", acceptedData.donorId)).then(donorDoc => ({
                         acceptedData,
@@ -578,10 +594,16 @@ if (window.location.pathname.includes("showDonors.html")) {
             });
 
             const donors = await Promise.all(donorPromises);
+            console.log("Donor details fetched:", donors.length);
 
             // Calculate distances and build cards
             for (const { acceptedData, donorData } of donors) {
-                if (!donorData) continue;
+                if (!donorData) {
+                    console.warn("Donor data not found for donor ID:", acceptedData.donorId);
+                    continue;
+                }
+
+                console.log("Processing donor:", donorData.fullName);
 
                 let distance = null;
                 if (donorData.coordinates && requestData.coordinates) {
@@ -591,6 +613,7 @@ if (window.location.pathname.includes("showDonors.html")) {
                         requestData.coordinates.lat,
                         requestData.coordinates.lng
                     );
+                    console.log("Distance calculated:", distance, "km");
                 }
 
                 const timeAgo = getTimeAgo(acceptedData.acceptedAt);
@@ -645,10 +668,13 @@ if (window.location.pathname.includes("showDonors.html")) {
                 `;
             }
 
+            console.log("Updating donors section with HTML");
             donorsSection.innerHTML = donorsHTML;
+            console.log("Donors page loaded successfully!");
 
         } catch (error) {
             console.error("Error loading donors:", error);
+            console.error("Error stack:", error.stack);
             alert("❌ Failed to load donors. Please try again.");
             window.location.href = "dashboard.html";
         }
@@ -664,36 +690,60 @@ if (window.location.pathname.includes("showRequest.html")) {
 
     onAuthStateChanged(auth, async (user) => {
         if (!user) {
+            console.error("User not authenticated");
             alert("⚠️ You must be logged in to view this request.");
             window.location.href = "login.html";
             return;
         }
 
+        console.log("User authenticated:", user.email);
+
         // Get request ID from URL
         const urlParams = new URLSearchParams(window.location.search);
         const requestId = urlParams.get('id');
 
+        console.log("Request ID from URL:", requestId);
+
         if (!requestId) {
+            console.error("No request ID in URL");
             alert("⚠️ No request ID provided.");
             window.location.href = "dashboard.html";
             return;
         }
 
         try {
+            console.log("Fetching request document for ID:", requestId);
+            
             // Fetch request details
             const requestDoc = await getDoc(doc(db, "bloodRequests", requestId));
             
+            console.log("Request document exists:", requestDoc.exists());
+            
             if (!requestDoc.exists()) {
-                alert("⚠️ Request not found.");
+                console.error("Request document not found in Firebase");
+                alert("⚠️ Request not found. It may have been cancelled or deleted.");
                 window.location.href = "dashboard.html";
                 return;
             }
 
+            console.log("Request data:", requestDoc.data());
+
             const requestData = requestDoc.data();
+            
+            console.log("Fetching user document for user:", user.uid);
             
             // Fetch current user data
             const userDoc = await getDoc(doc(db, "users", user.uid));
+            
+            if (!userDoc.exists()) {
+                console.error("User document not found");
+                alert("⚠️ User data not found. Please log in again.");
+                window.location.href = "login.html";
+                return;
+            }
+            
             const userData = userDoc.data();
+            console.log("User data:", userData);
 
             // Calculate distance
             let distance = 0;
@@ -712,7 +762,7 @@ if (window.location.pathname.includes("showRequest.html")) {
             const priorityEl = document.querySelector('.priority');
             const bloodGroupEl = document.querySelector('.detail-item strong');
             const distanceEl = document.querySelectorAll('.detail-item')[1].querySelector('strong');
-            const locationEl = document.querySelectorAll('.detail-item')[2].querySelector('strong');
+            const locationEl = document.querySelectorAll('.detail-item')[2];
             const noteEl = document.querySelector('.note');
 
             if (requesterNameEl) requesterNameEl.textContent = requestData.patientName || "Anonymous Patient";
@@ -727,24 +777,49 @@ if (window.location.pathname.includes("showRequest.html")) {
             if (bloodGroupEl) bloodGroupEl.textContent = requestData.bloodGroup;
             if (distanceEl) distanceEl.textContent = `${distance.toFixed(1)} km`;
             if (locationEl) {
-                locationEl.innerHTML = `${requestData.hospital}<br><small>${requestData.locationText}</small>`;
+                locationEl.innerHTML = `
+                    <i class="fas fa-hospital"></i>
+                    <span>Location: <strong>${requestData.hospital}</strong><br>
+                    <small>${requestData.locationText || 'Coordinates: ' + requestData.coordinates.lat.toFixed(4) + ', ' + requestData.coordinates.lng.toFixed(4)}</small></span>
+                `;
             }
             if (noteEl) noteEl.textContent = requestData.additionalInfo || "No additional information provided.";
 
             // Handle Accept button - NOW SAVES TO DATABASE
             const acceptBtn = document.querySelector('.accept');
+            const declineBtn = document.querySelector('.decline');
+            
             if (acceptBtn) {
                 acceptBtn.addEventListener('click', async () => {
                     if (confirm('Are you sure you want to accept this blood donation request?')) {
                         acceptBtn.textContent = 'Processing...';
                         acceptBtn.disabled = true;
+                        if (declineBtn) declineBtn.disabled = true;
 
                         try {
+                            // Check if user has already accepted this request
+                            const existingAcceptanceQuery = query(
+                                collection(db, "acceptedDonations"),
+                                where("requestId", "==", requestId),
+                                where("donorId", "==", user.uid)
+                            );
+                            
+                            const existingAcceptance = await getDocs(existingAcceptanceQuery);
+                            
+                            if (!existingAcceptance.empty) {
+                                alert("You have already accepted this request!");
+                                acceptBtn.textContent = 'Already Accepted';
+                                return;
+                            }
+
                             // Create an accepted donation record
                             await addDoc(collection(db, "acceptedDonations"), {
                                 requestId: requestId,
                                 donorId: user.uid,
                                 donorEmail: user.email,
+                                donorName: userData.fullName || 'Anonymous',
+                                donorPhone: userData.phone || '',
+                                donorBloodGroup: userData.bloodGroup,
                                 requestedBy: requestData.requestedBy,
                                 bloodGroup: requestData.bloodGroup,
                                 status: "accepted",
@@ -752,21 +827,102 @@ if (window.location.pathname.includes("showRequest.html")) {
                                 hospital: requestData.hospital
                             });
 
-                            acceptBtn.textContent = '✓ Accepted!';
+                            // Update the UI to show success
+                            acceptBtn.textContent = '✓ Request Accepted!';
                             acceptBtn.style.background = '#28a745';
+                            acceptBtn.style.cursor = 'default';
                             
-                            // Show contact information
-                            alert(`🎉 Thank you for accepting!\n\nPlease contact the requester:\n\nPhone: ${requestData.requestedByPhone || 'Not provided'}\nEmail: ${requestData.requestedByEmail}\n\nHospital: ${requestData.hospital}\n\nThey will be notified of your acceptance.`);
+                            // Hide decline button
+                            if (declineBtn) {
+                                declineBtn.style.display = 'none';
+                            }
                             
-                            setTimeout(() => {
-                                window.location.href = 'dashboard.html';
-                            }, 2000);
+                            // Create a contact information section
+                            const cardFooter = document.querySelector('.card-footer');
+                            if (cardFooter) {
+                                // Add spacing
+                                cardFooter.style.marginTop = '20px';
+                                
+                                // Create notification message
+                                const notificationDiv = document.createElement('div');
+                                notificationDiv.style.cssText = 'background: #e8f5e9; padding: 16px; border-radius: 8px; margin-bottom: 16px; border-left: 4px solid #28a745;';
+                                notificationDiv.innerHTML = `
+                                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                                        <span style="font-size: 24px;">✅</span>
+                                        <strong style="color: #2e7d32; font-size: 16px;">Request Accepted Successfully!</strong>
+                                    </div>
+                                    <p style="margin: 0; color: #1b5e20; font-size: 14px; line-height: 1.6;">
+                                        We've notified the person who posted this request. You can contact them directly using the information below.
+                                    </p>
+                                `;
+                                
+                                // Create contact info section
+                                const contactDiv = document.createElement('div');
+                                contactDiv.style.cssText = 'background: #f8f8f8; padding: 16px; border-radius: 8px; margin-bottom: 16px;';
+                                contactDiv.innerHTML = `
+                                    <h4 style="margin: 0 0 12px 0; color: #333; font-size: 15px; font-weight: 600;">
+                                        <i class="fas fa-user-circle" style="color: #e63946; margin-right: 8px;"></i>
+                                        Requester Contact Information
+                                    </h4>
+                                    <div style="display: flex; flex-direction: column; gap: 10px; font-size: 14px;">
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <i class="fas fa-user" style="color: #666; width: 16px;"></i>
+                                            <span style="color: #666;">Name:</span>
+                                            <strong style="color: #333;">${requestData.patientName || 'Not provided'}</strong>
+                                        </div>
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <i class="fas fa-phone" style="color: #666; width: 16px;"></i>
+                                            <span style="color: #666;">Phone:</span>
+                                            <strong style="color: #333;">${requestData.requestedByPhone || 'Not provided'}</strong>
+                                        </div>
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <i class="fas fa-envelope" style="color: #666; width: 16px;"></i>
+                                            <span style="color: #666;">Email:</span>
+                                            <strong style="color: #333;">${requestData.requestedByEmail || 'Not provided'}</strong>
+                                        </div>
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <i class="fas fa-hospital" style="color: #666; width: 16px;"></i>
+                                            <span style="color: #666;">Hospital:</span>
+                                            <strong style="color: #333;">${requestData.hospital}</strong>
+                                        </div>
+                                    </div>
+                                `;
+                                
+                                // Create action buttons
+                                const actionsDiv = document.createElement('div');
+                                actionsDiv.style.cssText = 'display: flex; gap: 10px;';
+                                actionsDiv.innerHTML = `
+                                    <button class="btn contact" onclick="window.location.href='tel:${requestData.requestedByPhone || ''}'" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; background: #e63946; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                                        <i class="fas fa-phone"></i> Call Now
+                                    </button>
+                                    <button class="btn message" onclick="window.location.href='mailto:${requestData.requestedByEmail || ''}'" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; background: #fff; border: 1px solid rgba(0,0,0,0.4); color: #333; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                                        <i class="fas fa-envelope"></i> Send Email
+                                    </button>
+                                `;
+                                
+                                // Insert everything before the existing buttons
+                                const cardBody = document.querySelector('.card-body');
+                                if (cardBody) {
+                                    cardBody.parentNode.insertBefore(notificationDiv, cardFooter);
+                                    cardBody.parentNode.insertBefore(contactDiv, cardFooter);
+                                    cardBody.parentNode.insertBefore(actionsDiv, cardFooter);
+                                }
+                                
+                                // Add back to dashboard button
+                                const backButton = document.createElement('button');
+                                backButton.textContent = 'Back to Dashboard';
+                                backButton.className = 'btn';
+                                backButton.style.cssText = 'flex: 1; background: #2196F3; color: white; border: none; margin-top: 12px;';
+                                backButton.onclick = () => window.location.href = 'dashboard.html';
+                                actionsDiv.appendChild(backButton);
+                            }
 
                         } catch (error) {
                             console.error("Error accepting request:", error);
                             alert("❌ Failed to accept request. Please try again.");
                             acceptBtn.textContent = 'Accept Request';
                             acceptBtn.disabled = false;
+                            if (declineBtn) declineBtn.disabled = false;
                         }
                     }
                 });
@@ -784,8 +940,12 @@ if (window.location.pathname.includes("showRequest.html")) {
 
         } catch (error) {
             console.error("Error loading request:", error);
-            alert("❌ Failed to load request details.");
-            window.location.href = "dashboard.html";
+            console.error("Error details:", error.message, error.code);
+            alert(`❌ Failed to load request details.\n\nError: ${error.message}\n\nPlease check:\n1. Your internet connection\n2. Firebase permissions\n3. The request still exists`);
+            // Don't redirect immediately, let user see the error
+            setTimeout(() => {
+                window.location.href = "dashboard.html";
+            }, 3000);
         }
     });
 }
@@ -1061,16 +1221,9 @@ if (window.location.pathname.includes("dashboard.html")) {
         }
     };
 
-    // Helper function to get compatible donor types
-    function getCompatibleDonorTypes(recipientBloodType) {
-        const donorTypes = [];
-        for (const [donorType, canDonateTo] of Object.entries(BLOOD_COMPATIBILITY)) {
-            if (canDonateTo.includes(recipientBloodType)) {
-                donorTypes.push(donorType);
-            }
-        }
-        return donorTypes;
-    }
+    // ------------------------------------------------------------------------------------------------------
+    // 🩸 DASHBOARD-SPECIFIC HELPER FUNCTIONS
+    // ------------------------------------------------------------------------------------------------------
 
     // Function to load blood requests - ONLY SHOW REQUESTS WITHIN 5KM AND COMPATIBLE BLOOD TYPES
     // EXCLUDE USER'S OWN REQUESTS
@@ -1348,7 +1501,7 @@ if (window.location.pathname.includes("dashboard.html")) {
                         try {
                             const messaging = getMessaging(app);
                             // Replace with your actual VAPID key from Firebase Console
-                            const vapidKey = "BA_kK_oKEBKYoSrBoxruAkExdRO2V6bZGXS1OnkJYjz0ogY5rL_YLlEkPsJC-405Xb_PEiw08GfnF5TUG-HKAyw";
+                            const vapidKey = "YOUR_VAPID_KEY_HERE";
 
                             const token = await getToken(messaging, {
                                 vapidKey: vapidKey
