@@ -912,7 +912,7 @@ if (window.location.pathname.includes("showRequest.html")) {
                                 const backButton = document.createElement('button');
                                 backButton.textContent = 'Back to Dashboard';
                                 backButton.className = 'btn';
-                                backButton.style.cssText = 'flex: 1; background: #2196F3; color: white; border: none; margin-top: 12px;';
+                                backButton.style.cssText = 'flex: 1; background: #e63946; color: white; border: none; margin-top: 12px;';
                                 backButton.onclick = () => window.location.href = 'dashboard.html';
                                 actionsDiv.appendChild(backButton);
                             }
